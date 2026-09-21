@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sensei.BuildingBlocks.Application", "src\BuildingBlocks\Sensei.BuildingBlocks.Application\Sensei.BuildingBlocks.Application.csproj", "{21180CE6-6BFB-4E23-840B-1D3D56D48890}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sensei.BuildingBlocks.Persistence", "src\BuildingBlocks\Sensei.BuildingBlocks.Persistence\Sensei.BuildingBlocks.Persistence.csproj", "{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sensei.Modules.Evidence.Api", "src\Modules\Evidence\Sensei.Modules.Evidence.Api\Sensei.Modules.Evidence.Api.csproj", "{E2DDF73F-0C16-43A0-B3D6-99842546BC64}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sensei.Modules.Evidence.Application", "src\Modules\Evidence\Sensei.Modules.Evidence.Application\Sensei.Modules.Evidence.Application.csproj", "{48404832-9AE9-42BA-B9A6-A345F74C5EC2}"
@@ -340,6 +342,18 @@ Global
 		{EC644B08-EF73-4ECE-A148-E08B877BDC1E}.Release|x64.Build.0 = Release|Any CPU
 		{EC644B08-EF73-4ECE-A148-E08B877BDC1E}.Release|x86.ActiveCfg = Release|Any CPU
 		{EC644B08-EF73-4ECE-A148-E08B877BDC1E}.Release|x86.Build.0 = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|x64.Build.0 = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Debug|x86.Build.0 = Debug|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|x64.ActiveCfg = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|x64.Build.0 = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|x86.ActiveCfg = Release|Any CPU
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -347,6 +361,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{90298CBA-BD6F-3A0A-69D5-97CAD7B05E7E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{21180CE6-6BFB-4E23-840B-1D3D56D48890} = {90298CBA-BD6F-3A0A-69D5-97CAD7B05E7E}
+		{83A8F24B-0E6C-4D33-A5F5-97C2B5D0C6A1} = {90298CBA-BD6F-3A0A-69D5-97CAD7B05E7E}
 		{E2DDF73F-0C16-43A0-B3D6-99842546BC64} = {F47320B3-E075-4855-8E14-BF094410F96D}
 		{48404832-9AE9-42BA-B9A6-A345F74C5EC2} = {F47320B3-E075-4855-8E14-BF094410F96D}
 		{E114E89D-5748-4A64-838B-385AD810BBA3} = {F47320B3-E075-4855-8E14-BF094410F96D}

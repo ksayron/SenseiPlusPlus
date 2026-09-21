@@ -59,7 +59,7 @@ public interface IEvidenceObservationService
     Task<bool> WithdrawAsync(Guid ownerId, Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
-public sealed class EvidenceObservationService(IEvidenceObservationRepository repository)
+public sealed class EvidenceObservationService(IEvidenceObservationRepository repository, IUnitOfWork unitOfWork)
     : IEvidenceObservationService
 {
     public async Task<EvidenceObservationResponse> CreateAsync(
@@ -78,6 +78,7 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
             command.Conditions,
             DateTimeOffset.UtcNow);
         await repository.AddAsync(observation, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(observation);
     }
 
@@ -107,6 +108,7 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
         }
 
         ExecuteVersioned(() => observation.ChangeStatus(command.Status, command.ExpectedVersion));
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(observation);
     }
 
@@ -123,6 +125,7 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
         }
 
         ExecuteVersioned(() => observation.ChangeStatus(EvidenceStatus.Withdrawn, expectedVersion));
+        await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
 

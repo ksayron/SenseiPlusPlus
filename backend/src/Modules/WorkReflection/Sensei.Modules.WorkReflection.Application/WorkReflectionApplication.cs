@@ -60,7 +60,7 @@ public interface IWorkEpisodeService
     Task<bool> ArchiveAsync(Guid ownerId, Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
-public sealed class WorkEpisodeService(IWorkEpisodeRepository repository) : IWorkEpisodeService
+public sealed class WorkEpisodeService(IWorkEpisodeRepository repository, IUnitOfWork unitOfWork) : IWorkEpisodeService
 {
     public async Task<WorkEpisodeResponse> CreateAsync(
         Guid ownerId,
@@ -76,6 +76,7 @@ public sealed class WorkEpisodeService(IWorkEpisodeRepository repository) : IWor
             command.Summary,
             DateTimeOffset.UtcNow);
         await repository.AddAsync(episode, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(episode);
     }
 
@@ -108,6 +109,7 @@ public sealed class WorkEpisodeService(IWorkEpisodeRepository repository) : IWor
             command.Summary,
             command.ExpectedVersion,
             DateTimeOffset.UtcNow));
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(episode);
     }
 
@@ -124,6 +126,7 @@ public sealed class WorkEpisodeService(IWorkEpisodeRepository repository) : IWor
         }
 
         ExecuteVersioned(() => episode.Archive(expectedVersion, DateTimeOffset.UtcNow));
+        await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
 

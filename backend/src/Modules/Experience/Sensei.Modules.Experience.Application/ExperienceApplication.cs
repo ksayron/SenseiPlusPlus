@@ -86,7 +86,7 @@ public interface IExperienceEntryService
     Task<bool> ArchiveAsync(Guid ownerId, Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
-public sealed class ExperienceEntryService(IExperienceEntryRepository repository) : IExperienceEntryService
+public sealed class ExperienceEntryService(IExperienceEntryRepository repository, IUnitOfWork unitOfWork) : IExperienceEntryService
 {
     public async Task<ExperienceEntryResponse> CreateAsync(
         Guid ownerId,
@@ -95,6 +95,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
     {
         var entry = ExperienceEntry.Create(ownerId, ToContent(command), DateTimeOffset.UtcNow);
         await repository.AddAsync(entry, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(entry);
     }
 
@@ -123,6 +124,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         }
 
         ExecuteVersioned(() => entry.Revise(ToContent(command), command.ExpectedVersion, DateTimeOffset.UtcNow));
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(entry);
     }
 
@@ -140,6 +142,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         }
 
         ExecuteVersioned(() => entry.Approve(revisionNumber, command.ExpectedVersion, DateTimeOffset.UtcNow));
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(entry);
     }
 
@@ -156,6 +159,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         }
 
         ExecuteVersioned(() => entry.Archive(expectedVersion));
+        await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
 

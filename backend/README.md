@@ -9,7 +9,7 @@ There are no client projects in this folder.
 
 - `Domain` contains entities, value rules, and lifecycle transitions.
 - `Application` contains use cases, transport-neutral contracts, and repository ports.
-- `Infrastructure` supplies adapters. The current adapters are in-memory placeholders.
+- `Infrastructure` supplies EF Core repositories and module-owned PostgreSQL mappings.
 - `Api` owns the module's `/api/v1` HTTP endpoints.
 
 The dependency direction is:
@@ -28,7 +28,39 @@ The initial modules are:
 - Evidence and profile (`EvidenceObservation`)
 - Experience and presentation (`ExperienceEntry` with immutable revisions)
 
-## Run
+## PostgreSQL and migrations
+
+Copy `.env.example` to an ignored `.env` only when you need to override the safe local
+defaults, then start PostgreSQL 18:
+
+```powershell
+docker compose up -d
+docker compose ps
+```
+
+Restore the repository-pinned EF tool and apply migrations explicitly. The host never applies
+migrations automatically, so production startup cannot silently alter a database:
+
+```powershell
+dotnet tool restore
+$env:ConnectionStrings__Sensei = 'Host=localhost;Port=5432;Database=sensei;Username=sensei;Password=sensei_local_dev'
+dotnet tool run dotnet-ef database update --project backend/src/Sensei.Host --startup-project backend/src/Sensei.Host
+```
+
+Useful local database commands:
+
+```powershell
+docker compose exec postgres psql -U sensei -d sensei
+docker compose logs -f postgres
+docker compose down
+docker compose down -v # destructive: removes the local database volume
+```
+
+PostgreSQL uses one database with module schemas: `identity`, `learning`,
+`work_reflection`, `evidence`, and `experience`. In Development only, the host creates the
+configured default owner if it is missing. Other environments receive no demo data.
+
+## Build and run
 
 The repository design targets .NET 10. This scaffold temporarily targets .NET 9 because
 9.0.300 is the SDK currently installed on the development machine. The target is centralized
@@ -59,8 +91,5 @@ Updates require an `expectedVersion`. Stale updates return `409 Conflict`. Delet
 preserve the documented lifecycles: concepts are deactivated, work/experience entries are
 archived, and evidence observations are withdrawn.
 
-## Next infrastructure increment
-
-Replace the in-memory repositories with module-owned EF Core mappings in one PostgreSQL unit
-of work, then add migrations and PostgreSQL integration tests for ownership, foreign keys, and
-optimistic concurrency. The application and domain projects should not change for that swap.
+`/health` includes PostgreSQL readiness. The root endpoint reports `postgresql` as the active
+persistence provider.
