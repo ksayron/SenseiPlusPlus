@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Sensei.BuildingBlocks.Application\Sensei.BuildingBlocks.Application.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Sensei.BuildingBlocks.Persistence\Sensei.BuildingBlocks.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Experience\Sensei.Modules.Experience.Domain\Sensei.Modules.Experience.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Sensei.Modules.Identity.Domain\Sensei.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Learning\Sensei.Modules.Learning.Domain\Sensei.Modules.Learning.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\WorkReflection\Sensei.Modules.WorkReflection.Domain\Sensei.Modules.WorkReflection.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Sensei.Host\Sensei.Host.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+          cache: true
+          cache-dependency-path: backend/**/packages.lock.json
+      - name: Restore locked dependencies
+        run: dotnet restore backend/Sensei.sln --locked-mode
+      - name: Build
+        run: dotnet build backend/Sensei.sln --configuration Release --no-restore
+      - name: Unit, architecture, and PostgreSQL integration tests
+        run: dotnet test backend/Sensei.sln --configuration Release --no-build --logger "trx;LogFileName=tests.trx"
+
+  client:
+    name: client
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

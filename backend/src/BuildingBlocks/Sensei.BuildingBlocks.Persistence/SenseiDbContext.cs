@@ -35,7 +35,8 @@ public sealed class SenseiDbContext(
         {
             throw new DuplicateResourceException("A resource with the same unique value already exists.");
         }
-        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.ForeignKeyViolation })
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+               { SqlState: PostgresErrorCodes.ForeignKeyViolation or PostgresErrorCodes.RestrictViolation })
         {
             throw new ResourceInUseException("The operation would break an existing resource relationship.");
         }
@@ -49,13 +50,14 @@ public static class PersistenceRegistration
         IConfiguration configuration,
         params Assembly[] modelAssemblies)
     {
-        var connectionString = configuration.GetConnectionString("Sensei")
-            ?? throw new InvalidOperationException("Connection string 'Sensei' is required.");
-
         services.AddSingleton(new SenseiModelAssemblies(modelAssemblies));
-        services.AddDbContext<SenseiDbContext>(options =>
+        services.AddDbContext<SenseiDbContext>((provider, options) =>
+        {
+            var connectionString = provider.GetRequiredService<IConfiguration>().GetConnectionString("Sensei")
+                ?? throw new InvalidOperationException("Connection string 'Sensei' is required.");
             options.UseNpgsql(connectionString, npgsql =>
-                npgsql.MigrationsAssembly("Sensei.Host")));
+                npgsql.MigrationsAssembly("Sensei.Host"));
+        });
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SenseiDbContext>());
         return services;
     }
