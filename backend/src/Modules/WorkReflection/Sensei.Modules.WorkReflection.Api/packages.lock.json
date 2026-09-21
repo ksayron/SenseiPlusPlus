@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net9.0": {
+      "sensei.buildingblocks.application": {
+        "type": "Project"
+      },
+      "sensei.modules.workreflection.application": {
+        "type": "Project",
+        "dependencies": {
+          "Sensei.BuildingBlocks.Application": "[1.0.0, )",
+          "Sensei.Modules.WorkReflection.Domain": "[1.0.0, )"
+        }
+      },
+      "sensei.modules.workreflection.domain": {
+        "type": "Project"
+      }
+    }
+  }
+}

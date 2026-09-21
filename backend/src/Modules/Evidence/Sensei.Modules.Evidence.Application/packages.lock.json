@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net9.0": {
+      "sensei.buildingblocks.application": {
+        "type": "Project"
+      },
+      "sensei.modules.evidence.domain": {
+        "type": "Project"
+      }
+    }
+  }
+}

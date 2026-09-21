@@ -100,3 +100,5 @@ if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Dat
 app.Run();
 
 public partial class Program;
+
+public partial class Program;
