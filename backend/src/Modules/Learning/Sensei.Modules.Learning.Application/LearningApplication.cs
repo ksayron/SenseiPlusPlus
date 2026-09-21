@@ -45,7 +45,7 @@ public interface IConceptService
     Task<bool> DeactivateAsync(Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
-public sealed class ConceptService(IConceptRepository repository) : IConceptService
+public sealed class ConceptService(IConceptRepository repository, IUnitOfWork unitOfWork) : IConceptService
 {
     public async Task<ConceptResponse> CreateAsync(CreateConceptCommand command, CancellationToken cancellationToken)
     {
@@ -62,6 +62,7 @@ public sealed class ConceptService(IConceptRepository repository) : IConceptServ
             command.Difficulty,
             DateTimeOffset.UtcNow);
         await repository.AddAsync(concept, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(concept);
     }
 
@@ -90,6 +91,7 @@ public sealed class ConceptService(IConceptRepository repository) : IConceptServ
             command.Locale,
             command.Difficulty,
             command.ExpectedVersion));
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(concept);
     }
 
@@ -102,6 +104,7 @@ public sealed class ConceptService(IConceptRepository repository) : IConceptServ
         }
 
         ExecuteVersioned(() => concept.Deactivate(expectedVersion));
+        await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
 

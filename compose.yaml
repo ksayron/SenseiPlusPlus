@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${SENSEI_POSTGRES_DB:-sensei}
+      POSTGRES_USER: ${SENSEI_POSTGRES_USER:-sensei}
+      POSTGRES_PASSWORD: ${SENSEI_POSTGRES_PASSWORD:-sensei_local_dev}
+    ports:
+      - "${SENSEI_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # PostgreSQL 18 stores clusters in major-version-specific subdirectories.
+      - sensei-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  sensei-postgres-data:

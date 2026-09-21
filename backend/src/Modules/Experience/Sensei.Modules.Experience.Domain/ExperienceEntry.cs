@@ -53,14 +53,14 @@ public sealed class ExperienceEntry
             CreatedAt = now,
             Version = 1
         };
-        entry._revisions.Add(ExperienceRevision.Create(1, content, now));
+        entry._revisions.Add(ExperienceRevision.Create(entry.Id, 1, content, now));
         return entry;
     }
 
     public void Revise(ExperienceRevisionContent content, int expectedVersion, DateTimeOffset now)
     {
         EnsureVersion(expectedVersion);
-        _revisions.Add(ExperienceRevision.Create(CurrentRevision.Number + 1, content, now));
+        _revisions.Add(ExperienceRevision.Create(Id, CurrentRevision.Number + 1, content, now));
         Version++;
     }
 
@@ -124,8 +124,11 @@ public sealed record ExperienceRevisionContent(
 
 public sealed class ExperienceRevision
 {
+    private readonly List<ExperienceRevisionConcept> _concepts = [];
+
     private ExperienceRevision() { }
 
+    public Guid EntryId { get; private set; }
     public int Number { get; private set; }
     public string Title { get; private set; } = string.Empty;
     public ExperienceSetting Setting { get; private set; }
@@ -135,16 +138,22 @@ public sealed class ExperienceRevision
     public string Alternatives { get; private set; } = string.Empty;
     public string Outcome { get; private set; } = string.Empty;
     public ImpactState ImpactState { get; private set; }
-    public IReadOnlyCollection<Guid> ConceptIds { get; private set; } = Array.Empty<Guid>();
+    public IReadOnlyCollection<Guid> ConceptIds => _concepts.Select(concept => concept.ConceptId).ToArray();
+    public IReadOnlyCollection<ExperienceRevisionConcept> Concepts => _concepts.AsReadOnly();
     public RevisionApprovalState ApprovalState { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? ApprovedAt { get; private set; }
 
-    internal static ExperienceRevision Create(int number, ExperienceRevisionContent content, DateTimeOffset now)
+    internal static ExperienceRevision Create(
+        Guid entryId,
+        int number,
+        ExperienceRevisionContent content,
+        DateTimeOffset now)
     {
         content.Validate();
-        return new ExperienceRevision
+        var revision = new ExperienceRevision
         {
+            EntryId = entryId,
             Number = number,
             Title = content.Title.Trim(),
             Setting = content.Setting,
@@ -154,10 +163,14 @@ public sealed class ExperienceRevision
             Alternatives = (content.Alternatives ?? string.Empty).Trim(),
             Outcome = (content.Outcome ?? string.Empty).Trim(),
             ImpactState = content.ImpactState,
-            ConceptIds = content.ConceptIds.Distinct().ToArray(),
             ApprovalState = RevisionApprovalState.Draft,
             CreatedAt = now
         };
+
+        revision._concepts.AddRange(content.ConceptIds
+            .Distinct()
+            .Select(conceptId => ExperienceRevisionConcept.Create(entryId, number, conceptId)));
+        return revision;
     }
 
     internal void Approve(DateTimeOffset now)
@@ -170,4 +183,20 @@ public sealed class ExperienceRevision
         ApprovalState = RevisionApprovalState.Approved;
         ApprovedAt = now;
     }
+}
+
+public sealed class ExperienceRevisionConcept
+{
+    private ExperienceRevisionConcept() { }
+
+    public Guid EntryId { get; private set; }
+    public int RevisionNumber { get; private set; }
+    public Guid ConceptId { get; private set; }
+
+    internal static ExperienceRevisionConcept Create(Guid entryId, int revisionNumber, Guid conceptId) => new()
+    {
+        EntryId = entryId,
+        RevisionNumber = revisionNumber,
+        ConceptId = conceptId
+    };
 }

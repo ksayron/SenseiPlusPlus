@@ -10,6 +10,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\Sensei.Modules.Evidence.Application\Sensei.Modules.Evidence.Application.csproj" />
     <ProjectReference Include="..\Sensei.Modules.Evidence.Domain\Sensei.Modules.Evidence.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Sensei.BuildingBlocks.Persistence\Sensei.BuildingBlocks.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

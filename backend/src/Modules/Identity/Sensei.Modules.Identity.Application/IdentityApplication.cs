@@ -45,7 +45,7 @@ public interface IUserService
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);
 }
 
-public sealed class UserService(IUserRepository repository) : IUserService
+public sealed class UserService(IUserRepository repository, IUnitOfWork unitOfWork) : IUserService
 {
     public async Task<UserResponse> CreateAsync(CreateUserCommand command, CancellationToken cancellationToken)
     {
@@ -63,6 +63,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
             DateTimeOffset.UtcNow);
 
         await repository.AddAsync(user, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(user);
     }
 
@@ -97,6 +98,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
             throw new ConcurrencyConflictException(exception.Message);
         }
 
+        await unitOfWork.CommitAsync(cancellationToken);
         return Map(user);
     }
 
@@ -108,6 +110,7 @@ public sealed class UserService(IUserRepository repository) : IUserService
         }
 
         await repository.DeleteAsync(id, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
 
