@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sensei.Modules.Experience.Domain\Sensei.Modules.Experience.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Sensei.BuildingBlocks.Application\Sensei.BuildingBlocks.Application.csproj" />
+  </ItemGroup>
+
+</Project>

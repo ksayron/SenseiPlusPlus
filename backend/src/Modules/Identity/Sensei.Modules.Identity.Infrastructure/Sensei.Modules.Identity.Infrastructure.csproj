@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Sensei.Modules.Identity.Application\Sensei.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\Sensei.Modules.Identity.Domain\Sensei.Modules.Identity.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
