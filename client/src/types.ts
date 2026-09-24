@@ -16,7 +16,7 @@ export interface Concept {
   difficulty: Difficulty
   isActive: boolean
   createdAt: string
-  version: number
+  versionToken: string
 }
 
 export interface WorkEpisode {
@@ -30,7 +30,7 @@ export interface WorkEpisode {
   isArchived: boolean
   createdAt: string
   updatedAt: string
-  version: number
+  versionToken: string
 }
 
 export interface EvidenceObservation {
@@ -45,7 +45,7 @@ export interface EvidenceObservation {
   conditions: string
   status: EvidenceStatus
   observedAt: string
-  version: number
+  versionToken: string
 }
 
 export interface ExperienceRevision {
@@ -69,7 +69,7 @@ export interface ExperienceEntry {
   ownerId: string
   isArchived: boolean
   createdAt: string
-  version: number
+  versionToken: string
   revisions: ExperienceRevision[]
 }
 
@@ -81,11 +81,18 @@ export interface UserAccount {
   answerLanguage: string
   timeZone: string
   createdAt: string
-  version: number
+  versionToken: string
 }
 
 export interface ApiProblem {
+  code?: string
   title?: string
   detail?: string
   status?: number
+  traceId?: string
+}
+
+export interface PageEnvelope<T> {
+  items: T[]
+  nextCursor: string | null
 }

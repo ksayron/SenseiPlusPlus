@@ -109,6 +109,9 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "sensei.buildingblocks.api": {
+        "type": "Project"
+      },
       "sensei.modules.evidence.domain": {
         "type": "Project"
       },

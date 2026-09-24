@@ -101,14 +101,15 @@ public sealed class WorkEpisodeService(IWorkEpisodeRepository repository, IUnitO
             return null;
         }
 
-        ExecuteVersioned(() => episode.Update(
+        VersionPrecondition.RequireCurrent(episode.Version, command.ExpectedVersion);
+        episode.Update(
             command.Title,
             command.Setting,
             command.EventDate,
             command.Role,
             command.Summary,
             command.ExpectedVersion,
-            DateTimeOffset.UtcNow));
+            DateTimeOffset.UtcNow);
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(episode);
     }
@@ -125,21 +126,10 @@ public sealed class WorkEpisodeService(IWorkEpisodeRepository repository, IUnitO
             return false;
         }
 
-        ExecuteVersioned(() => episode.Archive(expectedVersion, DateTimeOffset.UtcNow));
+        VersionPrecondition.RequireCurrent(episode.Version, expectedVersion);
+        episode.Archive(expectedVersion, DateTimeOffset.UtcNow);
         await unitOfWork.CommitAsync(cancellationToken);
         return true;
-    }
-
-    private static void ExecuteVersioned(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ConcurrencyConflictException(exception.Message);
-        }
     }
 
     private static WorkEpisodeResponse? MapOrNull(WorkEpisode? episode) => episode is null ? null : Map(episode);

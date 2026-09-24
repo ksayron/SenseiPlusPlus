@@ -83,22 +83,31 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [nextCursor, setNextCursor] = useState<Record<'learn' | 'reflect' | 'evidence' | 'experience', string | null>>({
+    learn: null, reflect: null, evidence: null, experience: null,
+  })
 
   const reload = useCallback(async () => {
     setLoading(true)
     try {
       await api.health()
       setOnline(true)
-      const [conceptData, episodeData, evidenceData, experienceData] = await Promise.all([
-        api.concepts.list(),
-        api.episodes.list(),
-        api.evidence.list(),
-        api.experience.list(),
+      const [conceptPage, episodePage, evidencePage, experiencePage] = await Promise.all([
+        api.concepts.listPage(),
+        api.episodes.listPage(),
+        api.evidence.listPage(),
+        api.experience.listPage(),
       ])
-      setConcepts(conceptData)
-      setEpisodes(episodeData)
-      setEvidence(evidenceData)
-      setExperience(experienceData)
+      setConcepts(conceptPage.items)
+      setEpisodes(episodePage.items)
+      setEvidence(evidencePage.items)
+      setExperience(experiencePage.items)
+      setNextCursor({
+        learn: conceptPage.nextCursor,
+        reflect: episodePage.nextCursor,
+        evidence: evidencePage.nextCursor,
+        experience: experiencePage.nextCursor,
+      })
     } catch {
       setOnline(false)
     } finally {
@@ -124,6 +133,34 @@ function App() {
       setToast(error instanceof Error ? error.message : 'Something went wrong.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const loadMore = async () => {
+    if (view === 'today' || !nextCursor[view]) return
+    setLoading(true)
+    try {
+      if (view === 'learn') {
+        const page = await api.concepts.listPage(nextCursor.learn ?? undefined)
+        setConcepts((current) => [...current, ...page.items])
+        setNextCursor((current) => ({ ...current, learn: page.nextCursor }))
+      } else if (view === 'reflect') {
+        const page = await api.episodes.listPage(nextCursor.reflect ?? undefined)
+        setEpisodes((current) => [...current, ...page.items])
+        setNextCursor((current) => ({ ...current, reflect: page.nextCursor }))
+      } else if (view === 'evidence') {
+        const page = await api.evidence.listPage(nextCursor.evidence ?? undefined)
+        setEvidence((current) => [...current, ...page.items])
+        setNextCursor((current) => ({ ...current, evidence: page.nextCursor }))
+      } else {
+        const page = await api.experience.listPage(nextCursor.experience ?? undefined)
+        setExperience((current) => [...current, ...page.items])
+        setNextCursor((current) => ({ ...current, experience: page.nextCursor }))
+      }
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Could not load the next page.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -216,6 +253,7 @@ function App() {
           {view === 'reflect' && <ReflectPage episodes={episodes} loading={loading} onEdit={(item) => setModal({ kind: 'episode', item })} onArchive={(item) => void mutate(() => api.episodes.archive(item), 'Reflection archived.')} />}
           {view === 'evidence' && <EvidencePage evidence={evidence} concepts={concepts} loading={loading} onStatus={(item, status) => void mutate(() => api.evidence.status(item, status), `Signal marked ${pretty(status).toLowerCase()}.`)} onWithdraw={(item) => void mutate(() => api.evidence.withdraw(item), 'Evidence signal withdrawn.')} />}
           {view === 'experience' && <ExperiencePage entries={experience} concepts={concepts} loading={loading} onEdit={(item) => setModal({ kind: 'experience', item })} onApprove={(item) => void mutate(() => api.experience.approve(item, currentRevision(item).number), 'Revision approved and preserved.')} onArchive={(item) => void mutate(() => api.experience.archive(item), 'Experience entry archived.')} />}
+          {view !== 'today' && nextCursor[view] && <button className="primary-button" onClick={() => void loadMore()} disabled={loading}>Load more</button>}
         </div>
       </main>
 
@@ -337,7 +375,7 @@ function LearnPage({ concepts, loading, onEdit, onDeactivate }: { concepts: Conc
           {concepts.map((concept, index) => (
             <article className={`concept-card ${!concept.isActive ? 'is-muted' : ''}`} key={concept.id}>
               <div className="card-index">{String(index + 1).padStart(2, '0')}</div>
-              <div className="concept-top"><span className={`difficulty difficulty--${concept.difficulty.toLowerCase()}`}>{concept.difficulty}</span><span>v{concept.version}</span></div>
+              <div className="concept-top"><span className={`difficulty difficulty--${concept.difficulty.toLowerCase()}`}>{concept.difficulty}</span></div>
               <h2>{concept.name}</h2><p>{concept.description}</p>
               <div className="concept-footer"><span>{concept.locale.toUpperCase()} · {concept.isActive ? 'Active' : 'Inactive'}</span><div><button className="icon-button" title="Edit concept" onClick={() => onEdit(concept)}><Pencil size={16} /></button>{concept.isActive && <button className="icon-button" title="Deactivate concept" onClick={() => onDeactivate(concept)}><Archive size={16} /></button>}</div></div>
             </article>
@@ -357,7 +395,7 @@ function ReflectPage({ episodes, loading, onEdit, onArchive }: { episodes: WorkE
           {[...episodes].sort((a, b) => b.eventDate.localeCompare(a.eventDate)).map((episode) => (
             <article className={`timeline-item ${episode.isArchived ? 'is-muted' : ''}`} key={episode.id}>
               <div className="timeline-marker" /><time>{shortDate(episode.eventDate)}</time>
-              <div className="timeline-card"><div className="timeline-meta"><span>{pretty(episode.setting)}</span><span>{episode.role}</span><span>v{episode.version}</span></div><h2>{episode.title}</h2><p>{episode.summary}</p><footer><span>{episode.isArchived ? 'Archived' : 'Ready to explore'}</span><div><button className="text-button" onClick={() => onEdit(episode)}><Pencil size={15} /> Edit</button>{!episode.isArchived && <button className="text-button" onClick={() => onArchive(episode)}><Archive size={15} /> Archive</button>}</div></footer></div>
+              <div className="timeline-card"><div className="timeline-meta"><span>{pretty(episode.setting)}</span><span>{episode.role}</span></div><h2>{episode.title}</h2><p>{episode.summary}</p><footer><span>{episode.isArchived ? 'Archived' : 'Ready to explore'}</span><div><button className="text-button" onClick={() => onEdit(episode)}><Pencil size={15} /> Edit</button>{!episode.isArchived && <button className="text-button" onClick={() => onArchive(episode)}><Archive size={15} /> Archive</button>}</div></footer></div>
             </article>
           ))}
         </div>
@@ -384,7 +422,7 @@ function ExperiencePage({ entries, concepts, loading, onEdit, onApprove, onArchi
     <section className="collection reveal reveal--1">
       <div className="collection-toolbar"><p>Every approved claim stays tied to an exact revision</p><span><FileCheck2 size={15} /> Factual approval</span></div>
       {loading ? <SkeletonGrid /> : entries.length === 0 ? <BigEmpty title="Your work deserves better than a forgotten bullet point." copy="Capture context, your role, decisions, alternatives, and outcomes. Approve only the revision you can stand behind." /> : (
-        <div className="experience-grid">{entries.map((entry) => { const revision = currentRevision(entry); return <article className={`experience-card ${entry.isArchived ? 'is-muted' : ''}`} key={entry.id}><header><span className={`status-pill status-pill--${revision.approvalState.toLowerCase()}`}>{revision.approvalState}</span><span>Revision {revision.number} · v{entry.version}</span></header><h2>{revision.title}</h2><p>{revision.context}</p><div className="tag-row">{revision.conceptIds.map((id) => <span key={id}>{conceptMap.get(id) ?? 'Concept'}</span>)}</div><div className="experience-facts"><div><span>My role</span><strong>{revision.role}</strong></div><div><span>Impact</span><strong>{revision.impactState}</strong></div></div><footer><button className="text-button" onClick={() => onEdit(entry)}><Pencil size={15} /> Revise</button>{revision.approvalState === 'Draft' && !entry.isArchived && <button className="approve-button" onClick={() => onApprove(entry)}><Check size={16} /> Approve exact revision</button>}{!entry.isArchived && <button className="icon-button" title="Archive entry" onClick={() => onArchive(entry)}><Archive size={16} /></button>}</footer></article> })}</div>
+        <div className="experience-grid">{entries.map((entry) => { const revision = currentRevision(entry); return <article className={`experience-card ${entry.isArchived ? 'is-muted' : ''}`} key={entry.id}><header><span className={`status-pill status-pill--${revision.approvalState.toLowerCase()}`}>{revision.approvalState}</span><span>Revision {revision.number}</span></header><h2>{revision.title}</h2><p>{revision.context}</p><div className="tag-row">{revision.conceptIds.map((id) => <span key={id}>{conceptMap.get(id) ?? 'Concept'}</span>)}</div><div className="experience-facts"><div><span>My role</span><strong>{revision.role}</strong></div><div><span>Impact</span><strong>{revision.impactState}</strong></div></div><footer><button className="text-button" onClick={() => onEdit(entry)}><Pencil size={15} /> Revise</button>{revision.approvalState === 'Draft' && !entry.isArchived && <button className="approve-button" onClick={() => onApprove(entry)}><Check size={16} /> Approve exact revision</button>}{!entry.isArchived && <button className="icon-button" title="Archive entry" onClick={() => onArchive(entry)}><Archive size={16} /></button>}</footer></article> })}</div>
       )}
     </section>
   )
@@ -421,7 +459,7 @@ function EpisodeForm({ item, saving, onSubmit }: { item?: WorkEpisode; saving: b
   return <form className="editor-form" onSubmit={submit}><Field label="Episode title"><input name="title" defaultValue={item?.title} required placeholder="Stabilized duplicate webhook delivery" /></Field><div className="form-row"><Field label="Setting"><select name="setting" defaultValue={item?.setting ?? 'PersonalProject'}><option value="Employment">Employment</option><option value="Coursework">Coursework</option><option value="PersonalProject">Personal project</option><option value="Other">Other</option></select></Field><Field label="When did it happen?"><input name="eventDate" type="date" defaultValue={item?.eventDate ?? new Date().toISOString().slice(0, 10)} required /></Field></div><Field label="Your role"><input name="role" defaultValue={item?.role} required placeholder="Investigated and designed the retry boundary" /></Field><Field label="What happened?"><textarea name="summary" defaultValue={item?.summary} required rows={5} placeholder="Describe the problem, decision, uncertainty, and what changed. Keep employer-sensitive details out." /></Field><FormFooter saving={saving} label={item ? 'Save reflection' : 'Capture episode'} /></form>
 }
 
-function EvidenceForm({ concepts, saving, onSubmit }: { concepts: Concept[]; saving: boolean; onSubmit: (body: Omit<EvidenceObservation, 'id' | 'ownerId' | 'status' | 'observedAt' | 'version'>) => void }) {
+function EvidenceForm({ concepts, saving, onSubmit }: { concepts: Concept[]; saving: boolean; onSubmit: (body: Omit<EvidenceObservation, 'id' | 'ownerId' | 'status' | 'observedAt' | 'versionToken'>) => void }) {
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); onSubmit({ conceptId: String(data.get('conceptId')), aspect: String(data.get('aspect')), signalKind: String(data.get('signalKind')) as EvidenceSignal, sourceKind: 'Declaration', sourceId: crypto.randomUUID(), assistance: String(data.get('assistance')) as Assistance, conditions: String(data.get('conditions')) }) }
   return <form className="editor-form" onSubmit={submit}>{concepts.length === 0 && <div className="form-warning"><CircleAlert size={17} /> Add an active concept before recording evidence.</div>}<Field label="Concept"><select name="conceptId" required disabled={concepts.length === 0}><option value="">Choose a concept</option>{concepts.map((concept) => <option key={concept.id} value={concept.id}>{concept.name}</option>)}</select></Field><Field label="Observed aspect"><input name="aspect" required placeholder="Explained at-least-once delivery failure modes" /></Field><div className="form-row"><Field label="Signal kind"><select name="signalKind" defaultValue="Explanation"><option>SelfDeclaration</option><option>ProfessionalExposure</option><option>Explanation</option><option>Scenario</option><option>Recall</option><option>ClientReportedAssessment</option></select></Field><Field label="Assistance"><select name="assistance" defaultValue="None"><option>None</option><option>HintUsed</option><option>ReferenceReviewed</option><option>SelfReviewed</option></select></Field></div><Field label="Conditions and limits"><textarea name="conditions" rows={4} required placeholder="Explained from memory after implementing a retry policy; did not cover broker failover." /></Field><FormFooter saving={saving} disabled={concepts.length === 0} label="Record signal" /></form>
 }

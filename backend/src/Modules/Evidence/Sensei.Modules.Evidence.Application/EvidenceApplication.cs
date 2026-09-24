@@ -107,7 +107,8 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
             return null;
         }
 
-        ExecuteVersioned(() => observation.ChangeStatus(command.Status, command.ExpectedVersion));
+        VersionPrecondition.RequireCurrent(observation.Version, command.ExpectedVersion);
+        observation.ChangeStatus(command.Status, command.ExpectedVersion);
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(observation);
     }
@@ -124,21 +125,10 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
             return false;
         }
 
-        ExecuteVersioned(() => observation.ChangeStatus(EvidenceStatus.Withdrawn, expectedVersion));
+        VersionPrecondition.RequireCurrent(observation.Version, expectedVersion);
+        observation.ChangeStatus(EvidenceStatus.Withdrawn, expectedVersion);
         await unitOfWork.CommitAsync(cancellationToken);
         return true;
-    }
-
-    private static void ExecuteVersioned(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ConcurrencyConflictException(exception.Message);
-        }
     }
 
     private static EvidenceObservationResponse? MapOrNull(EvidenceObservation? observation) =>

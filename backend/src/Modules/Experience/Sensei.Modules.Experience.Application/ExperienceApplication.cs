@@ -123,7 +123,8 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
             return null;
         }
 
-        ExecuteVersioned(() => entry.Revise(ToContent(command), command.ExpectedVersion, DateTimeOffset.UtcNow));
+        VersionPrecondition.RequireCurrent(entry.Version, command.ExpectedVersion);
+        entry.Revise(ToContent(command), command.ExpectedVersion, DateTimeOffset.UtcNow);
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(entry);
     }
@@ -141,7 +142,8 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
             return null;
         }
 
-        ExecuteVersioned(() => entry.Approve(revisionNumber, command.ExpectedVersion, DateTimeOffset.UtcNow));
+        VersionPrecondition.RequireCurrent(entry.Version, command.ExpectedVersion);
+        entry.Approve(revisionNumber, command.ExpectedVersion, DateTimeOffset.UtcNow);
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(entry);
     }
@@ -158,7 +160,8 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
             return false;
         }
 
-        ExecuteVersioned(() => entry.Archive(expectedVersion));
+        VersionPrecondition.RequireCurrent(entry.Version, expectedVersion);
+        entry.Archive(expectedVersion);
         await unitOfWork.CommitAsync(cancellationToken);
         return true;
     }
@@ -184,18 +187,6 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         command.Outcome,
         command.ImpactState,
         command.ConceptIds);
-
-    private static void ExecuteVersioned(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ConcurrencyConflictException(exception.Message);
-        }
-    }
 
     private static ExperienceEntryResponse? MapOrNull(ExperienceEntry? entry) => entry is null ? null : Map(entry);
 

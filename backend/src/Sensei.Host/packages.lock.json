@@ -2,6 +2,15 @@
   "version": 2,
   "dependencies": {
     "net9.0": {
+      "Microsoft.AspNetCore.OpenApi": {
+        "type": "Direct",
+        "requested": "[9.0.20, )",
+        "resolved": "9.0.20",
+        "contentHash": "dJ+PafHe6aOIk+2qfi1w9w1GIYT1aDJIb8FKAtX6oEibQaPw+ASPHjBgiLH0rHEy5wYzrul6TW1qm2d8uuunMw==",
+        "dependencies": {
+          "Microsoft.OpenApi": "1.6.30"
+        }
+      },
       "Microsoft.EntityFrameworkCore.Design": {
         "type": "Direct",
         "requested": "[9.0.20, )",
@@ -22,6 +31,12 @@
           "Mono.TextTemplating": "3.0.0",
           "System.Text.Json": "9.0.20"
         }
+      },
+      "Microsoft.Extensions.ApiDescription.Server": {
+        "type": "Direct",
+        "requested": "[9.0.20, )",
+        "resolved": "9.0.20",
+        "contentHash": "eZ12KJaGE8rrUC05d4+dAPwHUUAKqvCGg2s6ZO95wDWni1PgX542olzweWWPdundxh0ombvFQnY6+49OjMimxQ=="
       },
       "Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore": {
         "type": "Direct",
@@ -257,6 +272,11 @@
         "resolved": "9.0.20",
         "contentHash": "F9PkV2d5cHwibxxgklXhXtvVgZlPCJ0rkuY+jpa34o3vdUr0DcGX7XQkZouWuoDSZoYF0gUydM778d0wNpwB+Q=="
       },
+      "Microsoft.OpenApi": {
+        "type": "Transitive",
+        "resolved": "1.6.30",
+        "contentHash": "GIxOTS4vUCdIRDt+BcnJQKdaKb9b+L14IJnzkbHOXlm7JTbIyp37DpA2SdpxjdTB1RPQ1jhPwbdoNcUWznHsrg=="
+      },
       "Mono.TextTemplating": {
         "type": "Transitive",
         "resolved": "3.0.0",
@@ -359,6 +379,9 @@
         "resolved": "7.0.0",
         "contentHash": "qmeeYNROMsONF6ndEZcIQ+VxR4Q/TX/7uIVLJqtwIWL7dDWeh0l1UIqgo4wYyjG//5lUNhwkLDSFl+pAWO6oiA=="
       },
+      "sensei.buildingblocks.api": {
+        "type": "Project"
+      },
       "sensei.buildingblocks.application": {
         "type": "Project"
       },
@@ -373,6 +396,7 @@
       "sensei.modules.evidence.api": {
         "type": "Project",
         "dependencies": {
+          "Sensei.BuildingBlocks.Api": "[1.0.0, )",
           "Sensei.Modules.Evidence.Application": "[1.0.0, )"
         }
       },
@@ -397,6 +421,7 @@
       "sensei.modules.experience.api": {
         "type": "Project",
         "dependencies": {
+          "Sensei.BuildingBlocks.Api": "[1.0.0, )",
           "Sensei.Modules.Experience.Application": "[1.0.0, )"
         }
       },
@@ -421,6 +446,7 @@
       "sensei.modules.identity.api": {
         "type": "Project",
         "dependencies": {
+          "Sensei.BuildingBlocks.Api": "[1.0.0, )",
           "Sensei.Modules.Identity.Application": "[1.0.0, )"
         }
       },
@@ -445,6 +471,7 @@
       "sensei.modules.learning.api": {
         "type": "Project",
         "dependencies": {
+          "Sensei.BuildingBlocks.Api": "[1.0.0, )",
           "Sensei.Modules.Learning.Application": "[1.0.0, )"
         }
       },
@@ -469,6 +496,7 @@
       "sensei.modules.workreflection.api": {
         "type": "Project",
         "dependencies": {
+          "Sensei.BuildingBlocks.Api": "[1.0.0, )",
           "Sensei.Modules.WorkReflection.Application": "[1.0.0, )"
         }
       },
