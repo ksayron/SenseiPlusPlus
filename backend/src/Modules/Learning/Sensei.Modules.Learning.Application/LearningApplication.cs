@@ -85,12 +85,13 @@ public sealed class ConceptService(IConceptRepository repository, IUnitOfWork un
             return null;
         }
 
-        ExecuteVersioned(() => concept.Update(
+        VersionPrecondition.RequireCurrent(concept.Version, command.ExpectedVersion);
+        concept.Update(
             command.Name,
             command.Description,
             command.Locale,
             command.Difficulty,
-            command.ExpectedVersion));
+            command.ExpectedVersion);
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(concept);
     }
@@ -103,21 +104,10 @@ public sealed class ConceptService(IConceptRepository repository, IUnitOfWork un
             return false;
         }
 
-        ExecuteVersioned(() => concept.Deactivate(expectedVersion));
+        VersionPrecondition.RequireCurrent(concept.Version, expectedVersion);
+        concept.Deactivate(expectedVersion);
         await unitOfWork.CommitAsync(cancellationToken);
         return true;
-    }
-
-    private static void ExecuteVersioned(Action action)
-    {
-        try
-        {
-            action();
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ConcurrencyConflictException(exception.Message);
-        }
     }
 
     private static ConceptResponse? MapOrNull(Concept? concept) => concept is null ? null : Map(concept);

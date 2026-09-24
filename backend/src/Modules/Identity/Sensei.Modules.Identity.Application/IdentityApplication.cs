@@ -42,7 +42,7 @@ public interface IUserService
     Task<UserResponse?> GetAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<UserResponse>> ListAsync(CancellationToken cancellationToken);
     Task<UserResponse?> UpdateAsync(Guid id, UpdateUserCommand command, CancellationToken cancellationToken);
-    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> DeleteAsync(Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
 public sealed class UserService(IUserRepository repository, IUnitOfWork unitOfWork) : IUserService
@@ -84,30 +84,27 @@ public sealed class UserService(IUserRepository repository, IUnitOfWork unitOfWo
             return null;
         }
 
-        try
-        {
-            user.Update(
-                command.DisplayName,
-                command.UiLocale,
-                command.AnswerLanguage,
-                command.TimeZone,
-                command.ExpectedVersion);
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ConcurrencyConflictException(exception.Message);
-        }
+        VersionPrecondition.RequireCurrent(user.Version, command.ExpectedVersion);
+        user.Update(
+            command.DisplayName,
+            command.UiLocale,
+            command.AnswerLanguage,
+            command.TimeZone,
+            command.ExpectedVersion);
 
         await unitOfWork.CommitAsync(cancellationToken);
         return Map(user);
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(Guid id, int expectedVersion, CancellationToken cancellationToken)
     {
-        if (await repository.GetAsync(id, cancellationToken) is null)
+        var user = await repository.GetAsync(id, cancellationToken);
+        if (user is null)
         {
             return false;
         }
+
+        VersionPrecondition.RequireCurrent(user.Version, expectedVersion);
 
         await repository.DeleteAsync(id, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);

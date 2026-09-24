@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Sensei.BuildingBlocks.Api\Sensei.BuildingBlocks.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\Evidence\Sensei.Modules.Evidence.Domain\Sensei.Modules.Evidence.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Experience\Sensei.Modules.Experience.Domain\Sensei.Modules.Experience.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\Sensei.Modules.Identity.Domain\Sensei.Modules.Identity.Domain.csproj" />

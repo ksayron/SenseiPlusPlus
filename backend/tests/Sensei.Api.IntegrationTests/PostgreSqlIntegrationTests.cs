@@ -16,6 +16,61 @@ namespace Sensei.Api.IntegrationTests;
 public sealed class PostgreSqlIntegrationTests(PostgreSqlFixture fixture)
 {
     [Fact]
+    public async Task Mutation_preconditions_return_distinct_problem_codes_and_strong_etags()
+    {
+        using var factory = fixture.CreateFactory();
+        using var client = factory.CreateClient();
+        var body = new
+        {
+            name = "Contract test",
+            description = "HTTP version contract",
+            locale = "en",
+            difficulty = "Beginner"
+        };
+        var created = await client.PostAsJsonAsync("/api/v1/learning/concepts", new
+        {
+            key = $"contract-{Guid.NewGuid():N}",
+            body.name,
+            body.description,
+            body.locale,
+            body.difficulty
+        });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var initialEtag = created.Headers.ETag;
+        Assert.NotNull(initialEtag);
+        Assert.False(initialEtag.IsWeak);
+        var id = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var path = $"/api/v1/learning/concepts/{id}";
+
+        async Task<HttpResponseMessage> PutAsync(string? ifMatch)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Put, path) { Content = JsonContent.Create(body) };
+            if (ifMatch is not null) request.Headers.TryAddWithoutValidation("If-Match", ifMatch);
+            return await client.SendAsync(request);
+        }
+
+        using var missing = await PutAsync(null);
+        Assert.Equal(HttpStatusCode.PreconditionRequired, missing.StatusCode);
+        Assert.Equal("precondition_required", (await missing.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+
+        using var malformed = await PutAsync($"W/{initialEtag}");
+        Assert.Equal(HttpStatusCode.BadRequest, malformed.StatusCode);
+        Assert.Equal("validation_failed", (await malformed.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+
+        using var updated = await PutAsync(initialEtag.ToString());
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        Assert.NotEqual(initialEtag, updated.Headers.ETag);
+        var updatedBody = await updated.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(updated.Headers.ETag!.Tag.Trim('"'), updatedBody.GetProperty("versionToken").GetString());
+
+        using var stale = await PutAsync(initialEtag.ToString());
+        Assert.Equal(HttpStatusCode.PreconditionFailed, stale.StatusCode);
+        var problem = await stale.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("precondition_failed", problem.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(problem.GetProperty("traceId").GetString()));
+    }
+
+    [Fact]
     public async Task Initial_migration_is_applied()
     {
         using var factory = fixture.CreateFactory();
@@ -88,9 +143,9 @@ public sealed class PostgreSqlIntegrationTests(PostgreSqlFixture fixture)
         using var host = fixture.CreateFactory();
         using var client = host.CreateClient();
         client.DefaultRequestHeaders.Add("X-Owner-Id", otherOwner.Id.ToString());
-        var items = await client.GetFromJsonAsync<JsonElement>("/api/v1/work/episodes");
+        var page = await client.GetFromJsonAsync<JsonElement>("/api/v1/work/episodes");
 
-        Assert.Equal(0, items.GetArrayLength());
+        Assert.Equal(0, page.GetProperty("items").GetArrayLength());
     }
 
     [Fact]

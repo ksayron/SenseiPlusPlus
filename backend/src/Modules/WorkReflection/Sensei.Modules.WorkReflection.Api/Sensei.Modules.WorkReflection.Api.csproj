@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Sensei.BuildingBlocks.Api\Sensei.BuildingBlocks.Api.csproj" />
     <ProjectReference Include="..\Sensei.Modules.WorkReflection.Application\Sensei.Modules.WorkReflection.Application.csproj" />
   </ItemGroup>
 

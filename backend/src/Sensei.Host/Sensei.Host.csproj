@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <OpenApiDocumentsDirectory>../../../docs/api</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--document-name v1 --file-name openapi-v1</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +13,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <ProjectReference Include="..\BuildingBlocks\Sensei.BuildingBlocks.Api\Sensei.BuildingBlocks.Api.csproj" />
     <ProjectReference Include="..\BuildingBlocks\Sensei.BuildingBlocks.Persistence\Sensei.BuildingBlocks.Persistence.csproj" />
     <ProjectReference Include="..\Modules\Identity\Sensei.Modules.Identity.Api\Sensei.Modules.Identity.Api.csproj" />
     <ProjectReference Include="..\Modules\Identity\Sensei.Modules.Identity.Infrastructure\Sensei.Modules.Identity.Infrastructure.csproj" />

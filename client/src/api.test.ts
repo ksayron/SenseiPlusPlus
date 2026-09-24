@@ -34,7 +34,7 @@ describe('API transport', () => {
       { status: 400, headers: { 'Content-Type': 'application/problem+json' } },
     )))
 
-    await expect(api.concepts.list()).rejects.toMatchObject({
+    await expect(api.concepts.listPage()).rejects.toMatchObject({
       name: 'ApiError',
       message: 'The key is required.',
       status: 400,
@@ -49,9 +49,19 @@ describe('API transport', () => {
     vi.stubGlobal('fetch', fetchMock)
     setOwnerId('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
 
-    await api.episodes.list()
+    await api.episodes.listPage()
 
     const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Headers
     expect(headers.get('X-Owner-Id')).toBe('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
+  })
+
+  it('sends the opaque version token as a strong If-Match ETag', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await api.concepts.deactivate({ id: 'concept-id', versionToken: 'opaque-token' } as never)
+
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Headers
+    expect(headers.get('If-Match')).toBe('"opaque-token"')
   })
 })
