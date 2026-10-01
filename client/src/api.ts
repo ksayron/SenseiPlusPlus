@@ -20,7 +20,10 @@ export const getOwnerId = () => {
   return DEFAULT_OWNER_ID
 }
 
-export const setOwnerId = (id: string) => localStorage.setItem(OWNER_KEY, id)
+export const setOwnerId = (id: string) => {
+  localStorage.setItem(OWNER_KEY, id)
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('sensei-owner-change'))
+}
 
 export class ApiError extends Error {
   status: number
@@ -36,12 +39,14 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit, ownerScoped = false): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit, ownerScoped = false): Promise<T> {
   const headers = new Headers(init?.headers)
   if (init?.body) headers.set('Content-Type', 'application/json')
-  if (ownerScoped) headers.set('X-Owner-Id', getOwnerId())
+  const requestOwner = ownerScoped ? getOwnerId() : null
+  if (requestOwner) headers.set('X-Owner-Id', requestOwner)
 
   const response = await fetch(`${API_BASE}${path}`, { ...init, headers })
+  if (requestOwner && requestOwner !== getOwnerId()) throw new ApiError('Owner changed. Reload this page.', 409)
   if (!response.ok) {
     let message = `Request failed (${response.status})`
     let problem: ApiProblem | undefined

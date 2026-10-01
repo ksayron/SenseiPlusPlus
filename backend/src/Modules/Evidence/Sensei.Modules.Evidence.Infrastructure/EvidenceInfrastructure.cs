@@ -10,6 +10,8 @@ namespace Sensei.Modules.Evidence.Infrastructure;
 public static class EvidenceInfrastructure
 {
     public static IServiceCollection AddEvidenceModule(this IServiceCollection services) => services
+        .AddScoped<IKnowledgeStore, KnowledgeStore>()
+        .AddScoped<KnowledgeService>()
         .AddScoped<IEvidenceObservationRepository, EfEvidenceObservationRepository>()
         .AddScoped<IEvidenceObservationService, EvidenceObservationService>();
 }

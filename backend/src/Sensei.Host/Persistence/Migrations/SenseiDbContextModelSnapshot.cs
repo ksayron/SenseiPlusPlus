@@ -109,6 +109,178 @@ namespace Sensei.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.EvidenceStatusRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ObservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("observation_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObservationId");
+
+                    b.ToTable("status_revisions", "evidence");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.KnowledgeContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Admitted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("admitted");
+
+                    b.Property<bool>("AnswerAware")
+                        .HasColumnType("boolean")
+                        .HasColumnName("answer_aware");
+
+                    b.Property<bool>("Assisted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("assisted");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<Guid>("ObservationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("observation_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("PolicyVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("policy_version");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("ResultId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("result_id");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("integer")
+                        .HasColumnName("score");
+
+                    b.Property<string>("SelfReview")
+                        .HasColumnType("text")
+                        .HasColumnName("self_review");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("OwnerId", "AttemptId");
+
+                    b.HasIndex("OwnerId", "ResultId");
+
+                    b.HasIndex("OwnerId", "SessionId");
+
+                    b.HasIndex("ResultId", "ConceptId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "ConceptId", "ObservationId");
+
+                    b.ToTable("knowledge_contributions", "evidence");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.KnowledgeState", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<double?>("Estimate")
+                        .HasColumnType("double precision")
+                        .HasColumnName("estimate");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("PolicyVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("policy_version");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "ConceptId")
+                        .IsUnique();
+
+                    b.ToTable("knowledge_states", "evidence");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.SelfReviewAllowance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<DateTimeOffset>("LastAdmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_admitted_at");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("OwnerId", "ConceptId")
+                        .IsUnique();
+
+                    b.ToTable("self_review_allowances", "evidence");
+                });
+
             modelBuilder.Entity("Sensei.Modules.Experience.Domain.ExperienceEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -391,6 +563,766 @@ namespace Sensei.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ConceptRelation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_id");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetId");
+
+                    b.HasIndex("SourceId", "TargetId", "Kind")
+                        .IsUnique();
+
+                    b.ToTable("concept_relations", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseConcept", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("ExerciseVersionId", "ConceptId")
+                        .IsUnique();
+
+                    b.ToTable("exercise_concepts", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseFamily", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("key");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("exercise_families", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("EvaluatorVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("evaluator_version");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("integer")
+                        .HasColumnName("score");
+
+                    b.Property<string>("SelfReview")
+                        .HasColumnType("text")
+                        .HasColumnName("self_review");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "AttemptId");
+
+                    b.ToTable("results", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Available")
+                        .HasColumnType("boolean")
+                        .HasColumnName("available");
+
+                    b.Property<string>("Difficulty")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("difficulty");
+
+                    b.Property<int>("EstimatedSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_seconds");
+
+                    b.Property<string>("EvaluationJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("evaluation_json");
+
+                    b.Property<string>("EvaluatorVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("evaluator_version");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_id");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("HintsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("hints_json");
+
+                    b.Property<string>("InteractionJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("interaction_json");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("locale");
+
+                    b.Property<Guid?>("MaterialVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("material_version_id");
+
+                    b.Property<Guid>("PrimaryConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("primary_concept_id");
+
+                    b.Property<string>("PromptJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("prompt_json");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("schema_version");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("MaterialVersionId");
+
+                    b.HasIndex("PrimaryConceptId");
+
+                    b.HasIndex("ExerciseId", "Revision")
+                        .IsUnique();
+
+                    b.ToTable("exercise_versions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.GoalConcept", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<Guid>("GoalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("goal_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("GoalId", "ConceptId")
+                        .IsUnique();
+
+                    b.ToTable("goal_concepts", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("AnswerAware")
+                        .HasColumnType("boolean")
+                        .HasColumnName("answer_aware");
+
+                    b.Property<string>("AnswerJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("answer_json");
+
+                    b.Property<bool>("Assisted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("assisted");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid?>("PreviousAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("previous_attempt_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "PreviousAttemptId");
+
+                    b.HasIndex("OwnerId", "SessionId", "ItemId", "ExerciseVersionId");
+
+                    b.ToTable("attempts", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<DateTimeOffset?>("ClientRecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("client_recorded_at");
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("text")
+                        .HasColumnName("device_id");
+
+                    b.Property<long?>("DeviceSequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("device_sequence");
+
+                    b.Property<Guid?>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid?>("MaterialVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("material_version_id");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("schema_version");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseVersionId");
+
+                    b.HasIndex("MaterialVersionId");
+
+                    b.HasIndex("OwnerId", "AttemptId");
+
+                    b.HasIndex("OwnerId", "SessionId");
+
+                    b.HasIndex("OwnerId", "ReceivedAt", "Id");
+
+                    b.ToTable("events", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningGoal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Archived")
+                        .HasColumnType("boolean")
+                        .HasColumnName("archived");
+
+                    b.Property<string>("Intention")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("intention");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<Guid?>("RoadmapVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("roadmap_version_id");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("RoadmapVersionId");
+
+                    b.ToTable("goals", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("ActualCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("actual_count");
+
+                    b.Property<Guid?>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("EnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<string>("FeedbackPolicy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("feedback_policy");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<int>("RequestedCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("requested_count");
+
+                    b.Property<string>("ReturnContext")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("return_context");
+
+                    b.Property<Guid?>("RoadmapStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("roadmap_stage_id");
+
+                    b.Property<string>("SelectionPolicy")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("selection_policy");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("OwnerId")
+                        .IsUnique()
+                        .HasFilter("state IN ('Active', 'Paused')");
+
+                    b.HasIndex("RoadmapStageId");
+
+                    b.HasIndex("OwnerId", "EnrollmentId");
+
+                    b.ToTable("sessions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.MaterialVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Available")
+                        .HasColumnType("boolean")
+                        .HasColumnName("available");
+
+                    b.Property<string>("BlocksJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("blocks_json");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("locale");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("schema_version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.ToTable("material_versions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.OperationReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Digest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("digest");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("OutcomeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("outcome_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("ResponseVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("response_version");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "OperationId")
+                        .IsUnique();
+
+                    b.ToTable("operation_receipts", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.RoadmapEnrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CurrentStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_stage_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<bool>("Paused")
+                        .HasColumnType("boolean")
+                        .HasColumnName("paused");
+
+                    b.Property<Guid>("RoadmapVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("roadmap_version_id");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrentStageId");
+
+                    b.HasIndex("RoadmapVersionId");
+
+                    b.HasIndex("OwnerId", "RoadmapVersionId")
+                        .IsUnique();
+
+                    b.ToTable("roadmap_enrollments", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.RoadmapStage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ConceptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("concept_id");
+
+                    b.Property<double>("MinimumCorrectness")
+                        .HasColumnType("double precision")
+                        .HasColumnName("minimum_correctness");
+
+                    b.Property<int>("MinimumFamilies")
+                        .HasColumnType("integer")
+                        .HasColumnName("minimum_families");
+
+                    b.Property<int>("MinimumSessions")
+                        .HasColumnType("integer")
+                        .HasColumnName("minimum_sessions");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid>("RoadmapVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("roadmap_version_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConceptId");
+
+                    b.HasIndex("RoadmapVersionId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("roadmap_stages", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.RoadmapVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Available")
+                        .HasColumnType("boolean")
+                        .HasColumnName("available");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("locale");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("roadmap_versions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.SessionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DraftJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("draft_json");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<bool>("HintUsed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("hint_used");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Outcome")
+                        .HasColumnType("text")
+                        .HasColumnName("outcome");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<bool>("ReferenceUsed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("reference_used");
+
+                    b.Property<bool>("Revealed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("revealed");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("session_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseVersionId");
+
+                    b.HasIndex("SessionId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("session_items", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.StageTraversal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_id");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("state");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StageId");
+
+                    b.HasIndex("EnrollmentId", "StageId")
+                        .IsUnique();
+
+                    b.ToTable("stage_traversals", "learning");
+                });
+
             modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.WorkEpisode", b =>
                 {
                     b.Property<Guid>("Id")
@@ -484,6 +1416,82 @@ namespace Sensei.Host.Persistence.Migrations
                         .HasConstraintName("fk_observations_owner");
                 });
 
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.EvidenceStatusRevision", b =>
+                {
+                    b.HasOne("Sensei.Modules.Evidence.Domain.EvidenceObservation", null)
+                        .WithMany()
+                        .HasForeignKey("ObservationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.KnowledgeContribution", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseFamily", null)
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "AttemptId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseResult", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "ResultId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningSession", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "SessionId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Evidence.Domain.EvidenceObservation", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "ConceptId", "ObservationId")
+                        .HasPrincipalKey("OwnerId", "ConceptId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.KnowledgeState", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Evidence.Domain.SelfReviewAllowance", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sensei.Modules.Experience.Domain.ExperienceEntry", b =>
                 {
                     b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
@@ -516,6 +1524,269 @@ namespace Sensei.Host.Persistence.Migrations
                         .WithMany("Concepts")
                         .HasForeignKey("EntryId", "RevisionNumber")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ConceptRelation", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("TargetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseConcept", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseResult", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "AttemptId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.ExerciseVersion", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseFamily", null)
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.MaterialVersion", null)
+                        .WithMany()
+                        .HasForeignKey("MaterialVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("PrimaryConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.GoalConcept", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningGoal", null)
+                        .WithMany()
+                        .HasForeignKey("GoalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningAttempt", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "PreviousAttemptId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.SessionItem", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "SessionId", "ItemId", "ExerciseVersionId")
+                        .HasPrincipalKey("OwnerId", "SessionId", "Id", "ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningEvent", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.MaterialVersion", null)
+                        .WithMany()
+                        .HasForeignKey("MaterialVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "AttemptId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningSession", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "SessionId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningGoal", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapVersion", null)
+                        .WithMany()
+                        .HasForeignKey("RoadmapVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.LearningSession", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapStage", null)
+                        .WithMany()
+                        .HasForeignKey("RoadmapStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapEnrollment", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EnrollmentId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.MaterialVersion", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.OperationReceipt", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.RoadmapEnrollment", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapStage", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapVersion", null)
+                        .WithMany()
+                        .HasForeignKey("RoadmapVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.RoadmapStage", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
+                        .WithMany()
+                        .HasForeignKey("ConceptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapVersion", null)
+                        .WithMany()
+                        .HasForeignKey("RoadmapVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.SessionItem", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.ExerciseVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningSession", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "SessionId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.StageTraversal", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapEnrollment", null)
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.RoadmapStage", null)
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

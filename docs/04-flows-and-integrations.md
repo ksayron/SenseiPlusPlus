@@ -1,15 +1,17 @@
 # User flows, interfaces and integration direction
 
+**Learning update, 24 September 2026:** [Learning experience](10-learning-experience.md) is authoritative for the next milestone. The broader reflection/journal/integration journeys below remain future product design. Learning uses no AI in Phase 1; offline storage/sync is Phase 4.
+
 ## Navigation and interaction
 
-Use five destinations: **Home, Learn, Work, Journal, Profile**, with Settings accessible separately. These are different workflows over shared records, not five independent products. Career reuse starts from Journal; there is no empty “Career platform” section in the prototype.
+The original product labels were Home, Learn, Work, Journal and Profile. The current client uses **Today, Learn, Reflect, Evidence, Experience**; preserve those non-learning destinations during this milestone. Career reuse starts from Experience; do not add an empty career platform. Learning adds directly addressable topic/session/roadmap screens.
 
 | Surface | Main action and visible information |
 | --- | --- |
-| Onboarding | Choose one goal and optional familiar topics; no job/Git link required; explain external AI route and free quota |
-| Home | Resume a session, start a short lesson, record an episode; up to three practice suggestions |
-| Learn | Pick a curated mechanism; “new to this” opens teaching; later reveal the reference after an initial attempt |
-| Offline library | Download complete practice packs, verify ready status, see storage/last-sync state, and resume learning without backend access |
+| Onboarding | Optional goal/familiar topics; no job/Git link, diagnostic or AI setup required for core learning |
+| Home | Resume a session, open learning or record an episode |
+| Learn | Topic workspace with overview/material/practice/activity; 3/5/10-item sessions with immediate feedback |
+| Offline library (Phase 4) | Download complete practice packs, verify ready status, see storage/last-sync state, and resume learning without backend access |
 | Work editor | Intent, constraints, contribution and optional selected excerpt; explicit AI request preview; retain a manual-only path |
 | Reflection workspace | One question at a time, exact context version, progress such as 2 of 3, saved-answer status, help/skip/pause/disagree |
 | Completion | Checked topics, initial/assisted attempts, unresolved/disputed items and context version; acknowledgement is a separate button |
@@ -22,11 +24,11 @@ Use text-first structured forms with optional Markdown preview and a basic diff 
 
 ## Complete learning-only journey
 
-Student selects message redelivery → reads an authored explanation if needed → answers a scenario before seeing its reference solution → answer is saved → feedback is assessed or remains pending if the provider is unavailable → student can challenge it or request help → profile links the narrow observation → schedule offers a changed scenario later.
+Experienced developer explores a topic → optionally reads material → chooses 3, 5 or 10 exercises → submits an objective answer or revealed flashcard self-review → server commits result/evidence → immediate authored feedback is shown → learner explicitly continues → summary/history and shared roadmap coverage update. Topic names are content data; C# fundamentals are the first test fixture only.
 
-No employment or work entry is required. The learner can optionally record a personal-project experiment; its setting remains personal project. A code-free explanation task remains substantive even when no source excerpts are supplied. Manual self-comparison during outage is labeled self-review and does not create model-assessed evidence.
+No employment or work entry is required. Optional reasoning is stored but ungraded in Phase 1. Self-review is labeled and subject to the owner/concept 72-hour gain cooldown. Missing AI cannot leave objective feedback pending. Scheduling and changed-scenario reminders begin in Phase 2; semantic free-answer assessment is later work.
 
-Travel journey: download a pack while connected → reopen PWA/native app in airplane mode → complete a lesson and changed scenario → use authored hints and reference/self-review → save attempts locally across restart → reconnect → sync once → select any attempts for later AI feedback. Offline completion is a supported learning outcome; the profile preserves the distinction between self-review and subsequent assessment. The implementation contract is in [offline clients](08-offline-clients-and-expansion.md).
+Phase 4 travel journey: download a pack while connected → reopen PWA/native app in airplane mode → complete a lesson and changed scenario → use authored hints and reference/self-review → save attempts locally across restart → reconnect → sync once → optionally select attempts for later AI feedback. This is a future acceptance target, not implemented Phase 1 behavior. See [offline clients](08-offline-clients-and-expansion.md).
 
 ## Integrated work journey
 
@@ -42,11 +44,13 @@ Numbers and role claims must originate in approved fields. If outcome is unknown
 
 ## Client/server boundary and recovery
 
+For current learning use the [planned learning API](09-learning-system.md#8-proposed-api-surface): synchronous deterministic submission, server draft saves, strong If-Match, stable operation IDs and receipt replay. The table below concerns later reflection/AI/artifact workflows. Public version guards use ETags; internal numeric expected versions are not request-body contracts.
+
 | Operation | Contract outline | Behavior |
 | --- | --- | --- |
-| Save context | `POST /episodes/{id}/snapshots` with expected episode version | New immutable snapshot; old acknowledgement remains historical |
+| Save context | `POST /episodes/{id}/snapshots` with episode `If-Match` | New immutable snapshot; old acknowledgement remains historical |
 | Confirm interpretation | `POST /sessions/{id}/interpretation-confirmations` | Confirm exact revision, not any later model text |
-| Submit answer | `POST /sessions/{id}/attempts`, idempotency key and expected version | Commit input first; return `202` with job ID if feedback queued |
+| Submit reflection answer | `POST /sessions/{id}/attempts`, idempotency key and `If-Match` | Commit input first; return `202` with job ID only for queued optional assessment |
 | Track work | `GET /jobs/{id}` and `GET /sessions/{id}` | Owner-checked status and durable state; polling is replaceable by SSE later |
 | Dispute | `POST /feedback/{id}/disputes` | Retain original feedback, capture missing constraint and correction lineage |
 | Acknowledge | `POST /sessions/{id}/acknowledgements` | Explicit user action, reviewed bundle and source version required |
@@ -54,9 +58,9 @@ Numbers and role claims must originate in approved fields. If outcome is unknown
 | Export story | `POST /artifacts/{id}/revisions/{version}/export` | Whitelisted projection of exact reviewed version |
 | Delete/export account | Dedicated owner-authenticated requests | Reauthentication, status and clearly stated scope |
 
-Client owns form state, accessible previews, downloaded content, durable offline attempts, pending operations and provisional scheduling; server owns synchronized authoritative versions, authorization, AI request assembly and confirmed evidence/approval. Show separate `SavedOnDevice`, `Synced`, `Conflict`, `AwaitingFeedback` and `QuotaPaused` states; “saved” must not obscure whether another device can access the work.
+In Phase 1 the client owns form state and accessible presentation; the server owns durable drafts, results, evidence and authority. Show Saving, Saved, Save failed and Conflict. Phase 4 adds downloaded content, durable local attempts, pending operations and provisional scheduling; only then introduce `SavedOnDevice` and `Synced`. `AwaitingFeedback` and `QuotaPaused` belong to optional asynchronous AI workflows, not ordinary deterministic feedback.
 
-Autosave offline learning answers and pending operations atomically to IndexedDB/SQLite, then synchronize when possible. Raw work-source drafts remain in-page until saved to the backend unless the user explicitly enables appropriate device storage; employer context is not silently cached in browser localStorage. A refresh loads the account-scoped local or synchronized draft/session. Two tabs/devices cannot overwrite substantive edits without conflict handling. Poll every 2 seconds for active online jobs, backing off toward 10 seconds and stopping in hidden tabs or terminal states. Provider errors never replace the user's editor content.
+Phase 1 autosaves learning drafts to the server after an idle debounce and before deliberate pause/navigation; failed edits remain in the open page. Refresh recovers the last acknowledged server draft, not unsaved disconnected changes. Phase 4 atomically saves local answers and pending operations to IndexedDB/SQLite before sync. Raw employer context is not silently cached in localStorage. Two tabs/devices cannot overwrite substantive edits without conflict handling. Later optional jobs may poll with backoff; provider errors never replace editor content.
 
 English text comes from message keys from the first screen; the UI must not embed translated wording in domain enums. Separate scenario language from UI language so later Russian interfaces can display an older English attempt faithfully.
 

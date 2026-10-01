@@ -1,10 +1,12 @@
 # AI, learning and provider configuration
 
+**Learning update, 24 September 2026:** core learning is AI-independent. The current [learning architecture](09-learning-system.md) and [experience](10-learning-experience.md) govern Phase 1. Scheduling/dimensions arrive in Phase 2, offline execution in Phase 4 and optional learning AI in Phase 6. Provider research below is dated 17 September and must be rechecked when optional inference is implemented; it is not a prerequisite or current endpoint recommendation for Phase 1.
+
 ## Where AI belongs
 
 Use models for contextual interpretation, focused questions, feedback on reasoning, optional teaching elaboration and grounded draft wording. Keep authentication, permissions, input persistence, content selection, deadlines, scheduling, provenance, approval, export, pricing policy and job state deterministic. No model receives tools for database writes, publication, source execution or filesystem/network access.
 
-The prototype uses **free external models through OpenRouter**, with another provider selectable through configuration. Local deployment is not local inference. No paid call, purchased credit tier, automatic top-up, model download or GPU is a baseline dependency.
+The optional AI proposal uses **free external models through OpenRouter**, with another provider selectable through configuration. Core learning needs no configured model or inference call. Local deployment is not local inference. No paid call, purchased credit tier, automatic top-up, model download or GPU is a baseline dependency.
 
 ## Provider contract and selection
 
@@ -33,7 +35,7 @@ OpenRouter supports JSON Schema output for compatible model/provider combination
 
 For the prototype, configure explicit upstream selection, disable unapproved fallback, and apply `provider.max_price` ceilings of zero for prompt, completion and request pricing. Check all other relevant pricing fields in fresh model metadata; reject missing/nonzero values, paid plugins and unapproved modality charges. Restricted-data routes additionally require compatible data policies. If no route satisfies the constraints, pause; do not relax price/privacy automatically. These controls must be contract-tested against the chosen endpoint. [Provider routing](https://openrouter.ai/docs/guides/routing/provider-selection).
 
-Most development uses reviewed fixtures. Required offline operation uses downloaded teaching/scenario packs, authored hints/rubrics, deterministic structured-exercise feedback, durable local answers and a provisional review schedule. It must work after restarting the device application without a network or running backend. New model feedback waits for connectivity and explicit quota-aware requests; syncing a trip's history must not automatically spend quota on every attempt. Manual journal drafts and downloaded sanitized entries remain available. A fixture response must never be attached to a real user's answer as a live assessment. See [offline learning and sync](08-offline-clients-and-expansion.md).
+Most optional-AI development uses reviewed fixtures. Phase 4 offline operation will use downloaded teaching/scenario packs, authored hints/rubrics, deterministic feedback, durable local answers and a provisional review schedule. Its acceptance requires restarting without a network or running backend; Phase 1 makes no such promise. New model feedback waits for connectivity and explicit quota-aware requests; syncing a trip's history must not automatically spend quota on every attempt. A fixture response must never be attached to a real user's answer as a live assessment. See [offline learning and sync](08-offline-clients-and-expansion.md).
 
 ## Bounded pipeline
 
@@ -48,7 +50,7 @@ Most development uses reviewed fixtures. Required offline operation uses downloa
 | 6. Reuse | Selected user facts and approved interpretation → draft experience wording | One optional call; substantive claims await user approval; reviewers and journal have separate artifact states |
 | 7. Present | One approved entry revision → concise interview story | One optional call; source facts/unknown impact preserved; deterministic template alternative available |
 
-Curated learning bypasses interpretation and question generation. The normal free-quota session uses one or two assessment calls, with teaching, variant choice and completion deterministic. Work reflection normally uses six calls (interpretation, question plan, three assessments, draft); optional extras stop at a visible session limit rather than unbounded conversation. Call budget includes retries.
+Phase 1 curated learning uses zero model calls: authored explanations, deterministic objective evaluation and explicit self-review complete the session. In a later optional-AI flow, a selected assessment may use one or two calls. The older work-reflection estimate is six calls (interpretation, question plan, three assessments, draft); optional extras stop at a visible limit. These are feature-specific estimates, not requirements for every learning session. Call budgets include retries.
 
 Initial request limit: roughly 8,000 input tokens and 1,500 output tokens, with a 64 KiB text intake limit as a separate transport guard. Use the lower supported route limit; count prompt/rubric/context overhead. Reject or ask the user to select a smaller excerpt instead of silently truncating relevant constraints. Do not rely on a model's advertised maximum context as a sensible default. Application latency target is first useful feedback within 60 seconds on the selected route, with a 120-second attempt timeout and resumable pending state; these are spike targets, not measured guarantees.
 
@@ -64,15 +66,17 @@ Separate reasoning from presentation: imperfect English is not a technical error
 
 ## Curated core and reference grounding
 
-Start with **six mechanisms across three groups**: DI lifetimes and scoped work in background services; cancellation and concurrency/shared state; message acknowledgement/redelivery and idempotent handling. Each mechanism gets a short English lesson, prerequisite notes, reviewed rubric, a recall/explanation task and two scenario variants. Start M1 with only one mechanism and add breadth after quality is acceptable.
+The earlier six-mechanism proposal (DI/background work, cancellation/concurrency, acknowledgement/idempotency) is an optional future curriculum example. Current implementation testing uses a small C# fundamentals fixture roadmap plus a second unrelated synthetic subject. Neither subject is baked into the engine. Production content sourcing, breadth, authoring tools and publication workflows are separate concerns; the [runtime contract](09-learning-system.md#4-consumable-content-and-evaluation) specifies only what consumable material/exercises must provide.
 
-Author concise original teaching material and link official references with version/date. Store a `ReferenceVersion` with source URL, relevant section, review date and short permitted excerpt or original summary. Curated content has explicit draft/reviewed/published status. Review is performed by the creator, with an experienced peer where available. A model can draft content but cannot publish the authoritative rubric itself.
+For a later content-production effort, author concise original material and link official references with version/date. A possible `ReferenceVersion` records source URL, section, review date and permitted excerpt/original summary. Draft/reviewed/published authoring and reviewer workflows remain recommendations for that separate effort, not added Phase 1 scope. A model must not independently make a generated rubric authoritative.
 
 Retrieve references by concept/version first, using small relational lookups. Offline packs include complete permitted teaching/reference material needed for the exercises, not only links that fail during travel. User source URLs are labels, not instructions to browse. No runtime arbitrary URL fetch, search plugin or paid retrieval tool is required. Version changes create new content; old attempts keep their original rubric. Initial technical reading should use supported .NET docs and official broker documentation when lessons are authored, not invented citations generated by the model.
 
 Retrieval-practice research motivates giving users an opportunity to answer before revealing explanations; spacing research motivates later revisits. These findings do not validate this application's grading or an exact schedule for professional reasoning. The original studies concern narrower learning tasks. [Karpicke and Roediger, 2008](https://doi.org/10.1126/science.1152408), [Cepeda et al., 2006](https://pubmed.ncbi.nlm.nih.gov/16719566/).
 
 ## Scheduling open-ended practice
+
+Scheduling begins in learning Phase 2. The following heuristic concerns later open-ended practice, not the Phase 1 selection estimate or the 72-hour self-review gain cooldown. A gain cooldown limits evidence influence; it is not a recommendation of when to study.
 
 Use a transparent **heuristic v1**, not an inferred forgetting probability. FSRS is a credible later alternative for stable recall items, but applying card-level ratings directly to varied explanations requires validation; Anki describes FSRS around card review history and desired retention. [Anki scheduling](https://docs.ankiweb.net/deck-options).
 
@@ -91,6 +95,8 @@ Intervals are product defaults for experimentation, not scientifically calibrate
 Rank due suggestions by user relevance, unresolved need, capped lateness and variety. Present at most three short tasks at once with snooze/pause; no accumulating failure count or streak requirement. After a long absence, ask for a small fresh sample rather than enqueue every missed review. Store timestamps in UTC and present due dates in the user's timezone. Switching policy affects future scheduling explicitly, not historical performance.
 
 ## Quality evaluation and languages
+
+The model-quality fixtures and live-call gates below apply when optional AI assessment is implemented. Phase 1 instead verifies deterministic scoring, safe interaction, durable submissions and evidence policy through [the learning acceptance matrix](11-learning-delivery-plan.md#4-acceptance-matrix).
 
 Build 24 reviewed English fixtures: four each for sound reasoning, common misconception, valid alternative, missing constraints, assisted revision and hostile embedded instruction. Include two communication-quality variants with equivalent technical meaning. Keep at least six cases held out when changing prompts. Compare technical verdict, cited evidence, useful uncertainty and invented claims, not wording similarity.
 

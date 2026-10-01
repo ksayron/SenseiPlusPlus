@@ -48,3 +48,71 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  ui-browser:
+    name: ui-browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui -- --workers=2
+      - run: npm run test:demo
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-browser-evidence
+          path: |
+            client/test-results
+            docs/ui/spa-screenshots
+
+  learning-browser:
+    name: learning-browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: sensei
+          POSTGRES_USER: sensei
+          POSTGRES_PASSWORD: sensei_local_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sensei -d sensei"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      ConnectionStrings__Sensei: Host=localhost;Port=5432;Database=sensei;Username=sensei;Password=sensei_local_dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: dotnet restore backend/Sensei.sln --locked-mode
+      - run: dotnet build backend/Sensei.sln --configuration Release --no-restore
+      - run: dotnet tool restore
+      - run: dotnet ef database update --project backend/src/Sensei.Host --configuration Release --no-build
+      - run: npm ci
+        working-directory: client
+      - run: npx playwright install --with-deps chromium
+        working-directory: client
+      - run: npm run test:e2e
+        working-directory: client
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: learning-browser-evidence
+          path: client/test-results

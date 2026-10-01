@@ -9,3 +9,5 @@
 **/coverage/
 *.user
 *.suo
+client/test-results/
+client/playwright-report/

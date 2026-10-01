@@ -5,11 +5,14 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 ## What is implemented
 
 - A responsive dashboard organized around **learn → reflect → prove**.
+- Coastal / Coastal Night across the application, with a persistent appearance toggle, shared semantic tokens, local fonts and responsive layouts down to 320px.
+- Shared Base UI buttons, accessible form/recovery dialogs and keyboard-operated topic tabs; appearance changes preserve task input.
 - Concept library with create, edit, and deactivate flows.
 - Work reflection timeline with create, edit, and archive flows.
 - Context-preserving evidence profile with dispute and withdrawal actions.
 - Revisioned experience journal with exact-revision approval.
 - API health state, Problem Details messages, loading/empty states, and optimistic-concurrency versions.
+- Complete Phase 1 topic/practice/session/goal/coverage flows with all six exercise formats, durable commands, acknowledged drafts and evidence history; see the [implementation record](../docs/13-learning-implementation.md).
 - A development-only owner identity stored in `localStorage` and sent as `X-Owner-Id` to owner-scoped endpoints.
 
 The owner header matches the current backend boundary; it is not authentication and must be replaced before non-local use.
@@ -32,6 +35,10 @@ npm run dev
 
 Open `http://localhost:5173`. Vite proxies `/api` and `/health` to `http://localhost:5062`.
 
+The **Build journal** navigation link opens [`/dev-roadmap`](http://localhost:5173/dev-roadmap), a public project roadmap with checkpoint details, searchable development notes and bundled source records. This route has no authentication or owner guard and works without the backend. It uses its own field-journal visual style.
+
+Roadmap milestones and dated logs are curated in `src/roadmap/roadmap-data.ts`; update them when work is delivered. Historical verification counts are attributed to their source records rather than presented as live CI. `?milestone=learning` (or another milestone ID) links directly to a checkpoint. Repository source records are bundled at build time, so document updates appear on the next build.
+
 ## Environment
 
 For a separately hosted API, create `.env.local`:
@@ -47,4 +54,10 @@ The default empty base URL is correct for the development proxy and for a same-o
 ```powershell
 npm run lint
 npm run build
+npm test
+npm run test:ui
 ```
+
+`test:ui` uses deterministic intercepted responses in Edge at desktop, tablet and 320px phone widths; it needs only Vite. `test:e2e` verifies learning against the local backend and PostgreSQL. Set `PLAYWRIGHT_CHANNEL=msedge` to use installed Edge for that suite. `test:demo` checks the standalone component gallery.
+
+The common theme layer lives in `src/theme`; both the SPA and demo consume it. See [design decisions](../docs/ui/Sensei-SPA-Design-Guidelines.md) and [implementation and verified scope](../docs/ui/Sensei-SPA-Design-Implementation.md).

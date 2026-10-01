@@ -1,8 +1,10 @@
 # Security, privacy and data ownership
 
+**Learning update, 24 September 2026:** [Phase 1 learning](09-learning-system.md) is local and AI-independent. Provider, offline and organization controls below apply when those later capabilities are enabled; they are not dependencies of deterministic practice. Full offline execution is Phase 4.
+
 ## Trust boundaries
 
-The prototype's application and PostgreSQL run locally, but AI request content crosses two external boundaries: **OpenRouter and the selected model-serving provider**. Account credentials, source context, answers and journal entries need different handling. A developer owning their learning history does not thereby gain permission to share employer intellectual property.
+The application and PostgreSQL run locally. If optional AI is enabled later, its request content crosses two external boundaries: **OpenRouter and the selected model-serving provider**. Core learning sends no such requests. Account credentials, source context, answers and journal entries need different handling. A developer owning their learning history does not thereby gain permission to share employer intellectual property.
 
 ```mermaid
 flowchart LR
@@ -24,7 +26,7 @@ The selected Nemotron free candidate explicitly warns against confidential/perso
 
 For later restricted-data routes, require compatible upstream data policies and, when the deployment promises it, ZDR routing. OpenRouter provides endpoint filtering for ZDR; this is a provider-policy constraint, not a claim that the application can independently prove downstream deletion. An empty eligible route set must stop processing. Do not relax privacy to keep a free model working. [OpenRouter ZDR](https://openrouter.ai/docs/guides/features/zdr).
 
-If no acceptable free route exists for a real episode, the user can save it locally, remove sensitive details, use a general curated scenario, and draft/reuse their account manually. Free services remain optional enrichments to durable user data. Downloaded offline learning is required and uses authored guidance and local records; new external AI assessment needs connectivity. See [offline privacy and sync](08-offline-clients-and-expansion.md).
+If no acceptable free route exists for a real episode, the user can retain it in their local deployment, remove sensitive details, use a general curated scenario, and draft/reuse their account manually. Free services remain optional enrichments. Downloaded offline learning is a Phase 4 requirement using authored guidance and local records; Phase 1 server persistence does not promise disconnected browser durability. New external AI assessment needs connectivity. See [offline privacy and sync](08-offline-clients-and-expansion.md).
 
 ## Controls by risk
 

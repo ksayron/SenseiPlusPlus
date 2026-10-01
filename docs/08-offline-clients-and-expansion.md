@@ -1,8 +1,10 @@
 # Offline learning, native clients and product expansion
 
-**Added 17 September 2026 following scope clarification.** The creator reports about one year of work on a large ASP.NET Core microservices project using RabbitMQ and PostgreSQL and considers themselves proficient. Architecture should accommodate that capability. The first checkpoint is in a few months, followed by several more months of development. Native apps, CLI/IDE integration and enterprise capabilities are planned expansion tracks, with early delivery possible when the core is progressing well. Useful offline learning is a requirement now, not an optional future optimization.
+**Added 17 September 2026; learning delivery timing revised 24 September 2026.** Useful offline learning remains an architectural product requirement. The agreed [learning phases](09-learning-system.md#delivery-phases) place working packs, local execution and synchronization in **Phase 4**, after the web learning foundation. Phase 1 establishes stable fact IDs, pinned content versions and retry-safe operations; it does not implement a service worker, local answer database or disconnected restart guarantee. Native apps, CLI/IDE and enterprise capabilities remain expansion tracks.
 
 ## Offline product contract
+
+The following is the Phase 4 target behavior, not a description of the current application. Current Phase 1 save/recovery behavior is specified in [learning experience](10-learning-experience.md#7-saving-and-failures). Provider/platform references below retain their original research date and require a fresh check when implementing those integrations.
 
 A developer downloads a learning pack before a trip, closes the app, later reopens it without network or a running backend, studies and practices, sees appropriate feedback, and retains progress across restarts. On reconnect, work synchronizes without duplicate attempts or lost edits. This must run on the client device; a locally deployed ASP.NET server on a laptop is not a mobile offline solution.
 
@@ -19,7 +21,7 @@ A developer downloads a learning pack before a trip, closes the app, later reope
 
 Offline feedback is useful without pretending to be an LLM: authored reference explanations, decision-specific hints, checklists and structured exercises support a complete learning session. Open-ended self-review is labeled `self_reviewed`; objective keyed feedback is `deterministic_check`; neither becomes `model_assessed`. Never score free-form reasoning with keyword matching or require live AI to finish a downloaded lesson. A cached answer from another scenario is not new assessment.
 
-No embedded local model is required. External free models remain the configured AI baseline. Downloaded practice packs and deterministic logic, rather than a background connection, provide the offline experience.
+No embedded local model is required. Any later external model is an optional free-only enhancement. Downloaded practice packs and deterministic logic provide the offline experience, independently of inference configuration.
 
 ## Client architecture and recommendation
 
@@ -48,6 +50,8 @@ Download to staging, verify all required assets and hashes, then atomically acti
 Local stores: packs/assets, session/attempt records, hint-reveal events, self-review, provisional review queue, optional downloaded journal revisions, local drafts, pending operations, sync receipts, cursor and deletion tombstones. Persist an answer and its pending operation in one client database transaction. Ordinary page refresh/app termination must not erase an offline answer. On a shared device, offline data is opt-in and account-scoped; raw employer source is not downloaded by default.
 
 ## Synchronization protocol
+
+Preserve the [learning evidence policy](09-learning-system.md#6-knowledge-and-gain-policy): uploaded scores cannot replace authoritative estimates; validate answers against pinned versions. Self-review admission is owner/concept scoped across devices, uses the server-authoritative 72-hour window, and retains recorded admission decisions on replay. Locally projected gains are provisional and may be reduced on sync. A gain cooldown and a review schedule are different policies.
 
 Use HTTPS pull/push with foreground sync on launch/resume and explicit “sync now”; opportunistic background sync is an enhancement, not the delivery guarantee. A message broker is a backend concern and is not the mobile sync protocol.
 

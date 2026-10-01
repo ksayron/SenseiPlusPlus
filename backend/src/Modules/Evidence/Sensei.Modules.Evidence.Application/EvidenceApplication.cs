@@ -59,7 +59,8 @@ public interface IEvidenceObservationService
     Task<bool> WithdrawAsync(Guid ownerId, Guid id, int expectedVersion, CancellationToken cancellationToken);
 }
 
-public sealed class EvidenceObservationService(IEvidenceObservationRepository repository, IUnitOfWork unitOfWork)
+public sealed class EvidenceObservationService(IEvidenceObservationRepository repository, IUnitOfWork unitOfWork,
+    KnowledgeService knowledge, ITransactionRunner transactions)
     : IEvidenceObservationService
 {
     public async Task<EvidenceObservationResponse> CreateAsync(
@@ -95,12 +96,12 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
         CancellationToken cancellationToken) =>
         (await repository.ListAsync(ownerId, conceptId, includeInactive, cancellationToken)).Select(Map).ToArray();
 
-    public async Task<EvidenceObservationResponse?> ChangeStatusAsync(
+    public Task<EvidenceObservationResponse?> ChangeStatusAsync(
         Guid ownerId,
         Guid id,
         UpdateEvidenceStatusCommand command,
         CancellationToken cancellationToken)
-    {
+        => transactions.RunAsync<EvidenceObservationResponse?>(async () => {
         var observation = await repository.GetAsync(ownerId, id, cancellationToken);
         if (observation is null)
         {
@@ -109,16 +110,17 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
 
         VersionPrecondition.RequireCurrent(observation.Version, command.ExpectedVersion);
         observation.ChangeStatus(command.Status, command.ExpectedVersion);
-        await unitOfWork.CommitAsync(cancellationToken);
+        knowledge.RecordStatus(observation);
+        await knowledge.RebuildAsync(ownerId, observation.ConceptId, cancellationToken);
         return Map(observation);
-    }
+    }, cancellationToken);
 
-    public async Task<bool> WithdrawAsync(
+    public Task<bool> WithdrawAsync(
         Guid ownerId,
         Guid id,
         int expectedVersion,
         CancellationToken cancellationToken)
-    {
+        => transactions.RunAsync(async () => {
         var observation = await repository.GetAsync(ownerId, id, cancellationToken);
         if (observation is null)
         {
@@ -127,9 +129,10 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
 
         VersionPrecondition.RequireCurrent(observation.Version, expectedVersion);
         observation.ChangeStatus(EvidenceStatus.Withdrawn, expectedVersion);
-        await unitOfWork.CommitAsync(cancellationToken);
+        knowledge.RecordStatus(observation);
+        await knowledge.RebuildAsync(ownerId, observation.ConceptId, cancellationToken);
         return true;
-    }
+    }, cancellationToken);
 
     private static EvidenceObservationResponse? MapOrNull(EvidenceObservation? observation) =>
         observation is null ? null : Map(observation);

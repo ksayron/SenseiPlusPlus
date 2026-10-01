@@ -15,6 +15,7 @@ using Sensei.Modules.Identity.Api;
 using Sensei.Modules.Identity.Infrastructure;
 using Sensei.Modules.Learning.Api;
 using Sensei.Modules.Learning.Infrastructure;
+using Sensei.Modules.Learning.Application;
 using Sensei.Modules.WorkReflection.Api;
 using Sensei.Modules.WorkReflection.Infrastructure;
 
@@ -42,6 +43,27 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 });
 builder.Services.AddOpenApi("v1", options =>
 {
+    options.AddOperationTransformer((operation, context, _) =>
+    {
+        var path = context.Description.RelativePath ?? "";
+        var learning = path.StartsWith("api/v1/learning/", StringComparison.Ordinal) && !path.StartsWith("api/v1/learning/concepts", StringComparison.Ordinal);
+        var knowledge = path.StartsWith("api/v1/evidence/knowledge", StringComparison.Ordinal);
+        if (!learning && !knowledge) return Task.CompletedTask;
+        var publicContent = path.StartsWith("api/v1/learning/topics", StringComparison.Ordinal) || path.StartsWith("api/v1/learning/materials/", StringComparison.Ordinal) || path == "api/v1/learning/roadmaps" || path == "api/v1/learning/concept-relations";
+        operation.Parameters ??= new List<OpenApiParameter>();
+        if (!publicContent) operation.Parameters.Add(new OpenApiParameter { Name = "X-Owner-Id", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = "string", Format = "uuid" } });
+        var mutation = context.Description.HttpMethod is "PUT" or "DELETE" || context.Description.HttpMethod == "POST" && path.Contains("/sessions/", StringComparison.Ordinal);
+        if (mutation) operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = "string" } });
+        foreach (var status in mutation ? new[] { "400", "404", "409", "412", "428" } : new[] { "400", "404", "409" })
+            operation.Responses.TryAdd(status, new OpenApiResponse { Description = "Problem Details with code and traceId", Content = new Dictionary<string, OpenApiMediaType> { ["application/problem+json"] = new() { Schema = new OpenApiSchema { Reference = new() { Type = ReferenceType.Schema, Id = "ProblemDetails" } } } } });
+        if (mutation || context.Description.HttpMethod == "POST" && (path.EndsWith("/sessions") || path.EndsWith("/goals") || path.EndsWith("/roadmap-enrollments")) || operation.OperationId == "GetLearningSession")
+            foreach (var response in operation.Responses.Where(x => x.Key is "200" or "201"))
+            {
+                response.Value.Headers ??= new Dictionary<string, OpenApiHeader>();
+                response.Value.Headers["ETag"] = new OpenApiHeader { Description = "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.", Schema = new OpenApiSchema { Type = "string" } };
+            }
+        return Task.CompletedTask;
+    });
     options.AddSchemaTransformer((schema, context, _) =>
     {
         if (context.JsonTypeInfo.Type == typeof(ProblemDetails))
@@ -121,7 +143,23 @@ builder.Services
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<SenseiDbContext>("postgresql", tags: ["ready"]);
 
+builder.Services.AddScoped<ILearningKnowledge, LearningKnowledgeAdapter>();
+
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var started = System.Diagnostics.Stopwatch.GetTimestamp();
+    await next(context);
+    if (context.Request.Path.StartsWithSegments("/api/v1/learning"))
+    {
+        LearningDiagnostics.RequestDuration.Record(System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        if (context.Response.StatusCode is 409 or 412) LearningDiagnostics.Conflicts.Add(1);
+        app.Logger.LogInformation("Learning request {Method} {Path} returned {Status} in {ElapsedMs}ms; trace {TraceId}",
+            context.Request.Method, context.Request.Path, context.Response.StatusCode,
+            System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds, context.TraceIdentifier);
+    }
+});
 
 app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 {
@@ -130,6 +168,7 @@ app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
     {
         ApiContractException api => (api.Code, api.StatusCode, api.Title),
         ArgumentException => ("validation_failed", StatusCodes.Status400BadRequest, "Validation failed"),
+        ResourceNotFoundException => ("resource_not_found", StatusCodes.Status404NotFound, "Resource not found"),
         DuplicateResourceException => ("resource_conflict", StatusCodes.Status409Conflict, "Resource conflict"),
         ResourceInUseException => ("resource_in_use", StatusCodes.Status409Conflict, "Resource is in use"),
         ConcurrencyConflictException => ("precondition_failed", StatusCodes.Status412PreconditionFailed, "Precondition failed"),
@@ -176,6 +215,7 @@ app.MapOpenApi("/openapi/{documentName}.json");
 
 app.MapIdentityEndpoints();
 app.MapLearningEndpoints();
+app.MapLearningRuntime();
 app.MapWorkReflectionEndpoints();
 app.MapEvidenceEndpoints();
 app.MapExperienceEndpoints();
