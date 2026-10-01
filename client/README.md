@@ -12,6 +12,7 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 - Context-preserving evidence profile with dispute and withdrawal actions.
 - Revisioned experience journal with exact-revision approval.
 - API health state, Problem Details messages, loading/empty states, and optimistic-concurrency versions.
+- Complete Phase 1 topic/practice/session/goal/coverage flows with all six exercise formats, durable commands, acknowledged drafts and evidence history; see the [implementation record](../docs/13-learning-implementation.md).
 - A development-only owner identity stored in `localStorage` and sent as `X-Owner-Id` to owner-scoped endpoints.
 
 The owner header matches the current backend boundary; it is not authentication and must be replaced before non-local use.

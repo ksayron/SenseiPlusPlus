@@ -2,11 +2,13 @@
 
 **Research date: 17 September 2026. Currency: USD. Prototype requirement: no service spending before hosting.** Prices below are reference inputs retrieved from official sources. Workloads, token counts and operating targets are estimates. No services were purchased or provisioned.
 
+**Learning update, 24 September 2026:** Phase 1 requires no inference account, key or calls. The provider/hosting figures below are historical scenarios for optional later capabilities and have not been refreshed by the learning documentation change. Offline device execution arrives in Phase 4; [the learning contract](09-learning-system.md) governs the next milestone.
+
 ## Prototype: zero mandatory service bill
 
-Run ASP.NET Core and PostgreSQL locally, build the frontend locally, use a server-side key for a selected zero-price OpenRouter route, and run deterministic AI fixtures for routine development. No local model/GPU, cloud database, paid IDE component, external analytics, SMTP subscription, commercial queue feature, paid API fallback or domain purchase is required.
+Run ASP.NET Core and PostgreSQL locally and build the frontend locally. Core learning uses deterministic exercise definitions and needs no inference. Optional later AI uses a server-side key for an approved zero-price route and labeled fixtures for routine testing. No local model/GPU, cloud database, paid IDE component, external analytics, SMTP subscription, commercial queue feature, paid API fallback or domain purchase is required.
 
-Existing hardware, disk, electricity and network access are assumed; this is zero new mandatory service spending, not zero resource consumption. Model keys/accounts and relevant service terms still need setup in the implementation phase. No automatic account creation, credit purchase or paid trial conversion is part of this proposal.
+Existing hardware, disk, electricity and network access are assumed; this is zero new mandatory service spending, not zero resource consumption. Model keys/accounts and relevant service terms need setup only for a later optional-AI implementation. No automatic account creation, credit purchase or paid trial conversion is part of this proposal.
 
 The expanded scope retains this constraint. Offline packs and on-device practice incur no inference calls; only explicitly requested later assessment consumes free quota. Native/CLI builds must use existing equipment and available local tooling. Android and Windows are the confirmed first targets; app-store distribution, signing, later iOS build hardware and any store-account fees require a separate verified budget/access plan, not an assumption that “native” is cost-free on every platform. Initial private device testing can precede store release. No public store account or paid build service is provisioned by this design.
 
@@ -70,7 +72,7 @@ Use local .NET/Node tooling with either native PostgreSQL or a database containe
 
 The machine can sleep or close the application; durable jobs remain in PostgreSQL. On startup, recover expired leases, process retention/delete requests and recompute due practice. No notifications are assumed while the app is off. Export works without a model. Demo fixtures are explicitly labeled and use separate sample accounts/database from private material.
 
-Downloaded learning works even while that backend machine is off: the PWA/native client runs lessons, stores attempts and maintains provisional scheduling on the device. Synchronization waits until the configured backend is reachable. The local-only phone demo can download/sync on a trusted LAN using a deliberately configured development endpoint, then operate offline elsewhere; the database remains private and no public tunnel is required. Remote sync away from that LAN eventually requires reachable hosting or another explicitly designed connectivity arrangement.
+In Phase 4, downloaded learning must work while the backend machine is off: the PWA/native client runs lessons, stores attempts and maintains provisional scheduling on the device. Synchronization waits until the backend is reachable. A later local-only phone demo can download/sync on a trusted LAN and then operate offline; the database stays private and no public tunnel is required. Phase 1 saves to the server and has no disconnected restart guarantee. Remote sync eventually requires reachable hosting or another explicitly designed connectivity arrangement.
 
 Configuration groups: database connection, encryption/data-protection storage, provider route/secret, `FreeOnly`, maximum calls/tokens/concurrency, retention settings and UI/content locale. Commit only example configuration. Do not bundle production keys into client assets or logs.
 

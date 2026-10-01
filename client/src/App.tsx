@@ -33,6 +33,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from './components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog'
 import { loadAppearance, setAppearance } from './theme/appearance'
+import { LearningPage } from './learning/LearningPage'
 import type {
   Assistance,
   Concept,
@@ -238,7 +239,7 @@ function App() {
         <header className="topbar">
           <div className="breadcrumbs"><span>Sensei++</span><ChevronRight size={14} /><strong>{title.label}</strong></div>
           <div className="topbar-actions">
-            <Link className="library-link" to="/learn"><BookOpen size={17} /> Topic library</Link>
+            <Link className="library-link" to="/learn/topics"><BookOpen size={17} /> Topic library</Link>
             <Button variant="ghost" className="theme-toggle" onClick={toggleAppearance} aria-pressed={appearance === 'coastal-night'} aria-label="Night appearance">
               {appearance === 'coastal' ? <Moon size={17} /> : <Sun size={17} />}
               {appearance === 'coastal' ? 'Night' : 'Day'}
@@ -256,8 +257,8 @@ function App() {
               <h1 ref={headingRef} tabIndex={-1}>{title.title}</h1>
             </div>
             {view !== 'today' && !(view === 'learn' && /\/learn\/(sessions|session-setup)/.test(location.pathname)) && (
-              <Button className="primary-button" onClick={() => view === 'learn' ? openModal({ kind: 'concept' }) : openModal({ kind: view === 'reflect' ? 'episode' : view === 'evidence' ? 'evidence' : 'experience' })}>
-                <Plus size={18} /> {view === 'reflect' ? 'Capture work' : view === 'experience' ? 'New entry' : view === 'evidence' ? 'Add signal' : 'New concept'}
+              <Button className="primary-button" onClick={() => view === 'learn' ? navigate('/learn/session-setup') : openModal({ kind: view === 'reflect' ? 'episode' : view === 'evidence' ? 'evidence' : 'experience' })}>
+                <Plus size={18} /> {view === 'reflect' ? 'Capture work' : view === 'experience' ? 'New entry' : view === 'evidence' ? 'Add signal' : 'Practice'}
               </Button>
             )}
           </section>
@@ -276,7 +277,7 @@ function App() {
               onCreate={openModal}
             />
           )}
-          {view === 'learn' && <LearnPage concepts={concepts} loading={loading} onEdit={(item) => openModal({ kind: 'concept', item })} onDeactivate={(item) => void mutate(() => api.concepts.deactivate(item), 'Concept moved out of active study.')} />}
+          {view === 'learn' && <><LearningPage /><details className="learning-library"><summary>Manage concept library</summary><LearnPage concepts={concepts} loading={loading} onEdit={(item) => openModal({ kind: 'concept', item })} onDeactivate={(item) => void mutate(() => api.concepts.deactivate(item), 'Concept moved out of active study.')} /></details></>}
           {view === 'reflect' && <ReflectPage episodes={episodes} loading={loading} onEdit={(item) => openModal({ kind: 'episode', item })} onArchive={(item) => void mutate(() => api.episodes.archive(item), 'Reflection archived.')} />}
           {view === 'evidence' && <EvidencePage evidence={evidence} concepts={concepts} loading={loading} onStatus={(item, status) => void mutate(() => api.evidence.status(item, status), `Signal marked ${pretty(status).toLowerCase()}.`)} onWithdraw={(item) => void mutate(() => api.evidence.withdraw(item), 'Evidence signal withdrawn.')} />}
           {view === 'experience' && <ExperiencePage entries={experience} concepts={concepts} loading={loading} onEdit={(item) => openModal({ kind: 'experience', item })} onApprove={(item) => void mutate(() => api.experience.approve(item, currentRevision(item).number), 'Revision approved and preserved.')} onArchive={(item) => void mutate(() => api.experience.archive(item), 'Experience entry archived.')} />}

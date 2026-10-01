@@ -1,20 +1,37 @@
 # Roadmap, feasibility questions and requirement coverage
 
+## Current learning roadmap — 24 September 2026
+
+The learning phases are governed by [learning system](09-learning-system.md), [learning experience](10-learning-experience.md), and [learning delivery/verification](11-learning-delivery-plan.md). Those documents supersede the original learning sequence below. Phase 1 is delivered locally; the [implementation record](13-learning-implementation.md) captures its behavior, checks and limits. Later phases remain planned.
+
+| Learning phase | Delivery boundary |
+| --- | --- |
+| 1 | AI-independent web learning: topic workspace, six exercise types, 3/5/10-item sessions, immediate feedback, goals, evidence summaries, basic selection/estimate and one test roadmap |
+| 2 | Spaced repetition, decay, dimensions, diagnostics, weak-area sessions, priorities, recommendation explanations and generic learning-signal contracts |
+| 3 | Intensive exercises and exam/deferred-feedback mode |
+| 4 | Working offline packs, local execution/projection, durable events and multi-device synchronization |
+| 5 | Actual agent, commit, IDE and other signal-provider integrations |
+| 6 | Optional learning AI using ordinary platform objects and the free-only policy |
+
+The engine is subject-independent; C# fundamentals are test fixtures only. Production content sourcing/authoring is a separate concern. Native, reflection, experience and enterprise tracks remain broader product work, not hidden prerequisites for Phase 1. In particular, selecting a live AI route and passing an airplane-mode demo do not gate the first learning release.
+
 ## Delivery rules
 
-This is a design package, not an instruction to scaffold the product yet. The creator reports proficiency from about a year on a large ASP.NET Core microservices/RabbitMQ/PostgreSQL project. Plan professional solutions accordingly. The first checkpoint is in a few months, followed by several additional months of development; exact dates, weekly availability and university rubric remain open. Confirmed constraints are local deployment, free configurable external AI, English first with later languages, and useful offline training during travel.
+This remains a design package; the repository now contains application foundations. The creator reports proficiency from about a year on a large ASP.NET Core microservices/RabbitMQ/PostgreSQL project. Plan professional solutions accordingly. Exact checkpoint dates, weekly availability and university rubric remain open. Confirmed constraints are local deployment, no paid dependencies, English first with later languages, and eventual useful offline travel learning. AI is optional.
 
-Prioritize the connected learning/work/experience loop. Tests protect authority, privacy, factual provenance and recovery; they should not simply reproduce method internals. Most automated checks use deterministic model fixtures. Selected live free-model evaluation is an implementation spike with its own quota/disclosure limits.
+The immediate priority is the learning loop described above. The broader learning/work/experience loop remains a product objective. Tests protect authority, provenance and recovery rather than reproduce implementation details. Phase 1 tests need no model; selected live free-model evaluation belongs to optional-AI work with its own quota/disclosure limits.
 
-## Two delivery windows
+## Broader delivery windows
 
-**Window A — first demonstrable version in a few months:** target M0–M3, required O1 offline learning/sync, and the critical privacy/recovery/demo checks from M4. A narrow curated curriculum is sufficient here. The demonstration must connect learning, reflection and approved experience and must include a real disconnected journey, even if the first offline client is a PWA. Completion of the entire expanded ecosystem before this checkpoint is an acceleration target, not the minimum commitment.
+**First demonstrable learning version:** complete learning Phase 1 and its L1-L7 acceptance gates. A small fixture library is sufficient. The broader graduation/demo boundary should be forecast from actual throughput; the former requirement to include O1 disconnected learning in the first checkpoint is superseded by learning Phase 4.
 
-**Window B — additional months:** finish curriculum/evaluation depth and deliver the planned native, CLI/IDE and organization tracks. N1, M5, I1 and E1 can move into Window A as soon as their prerequisites and measured capacity permit; they are not excluded until graduation or until an institution asks for them. Broader platform coverage, federation/provisioning and infrastructure extraction follow concrete use cases. Hosting stays conditional on its own budget/authorization.
+**Later delivery:** sequence learning Phases 2-6 and broader reflection/experience/native/organization tracks by their actual dependencies. Broader platform coverage, federation/provisioning and infrastructure extraction follow concrete use cases. Hosting stays conditional on its own budget/authorization. Do not reintroduce the historical milestone catalog as an obligation to implement all tracks with Phase 1.
 
 After the first two completed increments, use actual throughput, unresolved quality issues and weekly availability to forecast the remaining tracks. Keep a demonstrable core branch/release at the checkpoint while expansion continues. Professional architecture is compatible with staged delivery; no premature claim that one developer will finish every enterprise feature on an unverified schedule is needed.
 
-## Milestones and definitions of done
+## Historical whole-product milestone catalog
+
+The M0-M5/O1/N1/I1/E1/E2/H1 labels below preserve the original full-product proposal and its acceptance mappings. They are not the current learning implementation order. In this catalog, AI pilot requirements apply only to optional inference, scheduled review maps to learning Phase 2, O1 maps to Phase 4, and provider integrations map to Phase 5. Use L1-L7 in the new delivery plan for the next release.
 
 | Milestone | Deliverable | Depends on | Definition of done |
 | --- | --- | --- | --- |
@@ -31,9 +48,11 @@ After the first two completed increments, use actual throughput, unresolved qual
 | E2: enterprise depth and additional clients | Further native/IDE platforms, federation/provisioning, policy/audit controls and evaluated aggregate trends as selected | N1/I1/E1 and actual priorities | Each selected capability has an acceptance scenario and access/recovery tests; no universal compliance or anonymity claims |
 | H1 future: hosted demonstration | Chosen host, credentials/registration/recovery, TLS, off-host backups, cost policy | M4 and explicit hosting/budget decision | Restore tested, live host isolated, budget/account eligibility verified, free-quota limitation accepted or a separately authorized paid policy adopted |
 
-M1 is a thin vertical slice, not the complete graduation scope. O1 establishes offline architecture early. M2–M4 complete reflection, factual approval, security and learning depth. Native, tooling and organization work consume these contracts as planned product tracks; their inclusion in the first checkpoint is conditional on actual progress. See [offline/expansion design](08-offline-clients-and-expansion.md) for platform trade-offs and enterprise scope.
+Historical M1 joined multiple now-separated delivery concerns. Current learning Phase 1 establishes fact/content contracts; Phase 4 implements O1 offline functionality. M2-M4 retain reflection, factual approval, security and broader learning goals. Native/tooling/organization work consumes those foundations in later selected tracks. See [offline/expansion design](08-offline-clients-and-expansion.md).
 
 ## Risk-focused tests
+
+This table covers the full target product. The Phase 1 release gate is the narrower [learning acceptance matrix](11-learning-delivery-plan.md#4-acceptance-matrix); AI worker, synchronization and organization scenarios gate their corresponding later phases.
 
 | Risk | Meaningful test |
 | --- | --- |
@@ -54,6 +73,8 @@ Use unit tests for deterministic transitions/scheduling/canonicalization; Postgr
 
 ## Consequential questions and bounded spikes
 
+These are retained expansion questions. The former free-route-first ordering is superseded: no provider spike blocks Phase 1. React is already selected and implemented; no frontend framework comparison is needed for this learning milestone. Content supply and native/exam/offline details remain separate future efforts.
+
 | Question / spike | Small experiment and exit criterion | Decision if it fails |
 | --- | --- | --- |
 | Free route suitability (first) | Compare up to two current free endpoints on 12 reviewed English examples each; record supported schema mode, refusal/repair rates, latency, quotas, policies and actual route IDs | Select another compatible free route or narrow curriculum/contextual grading; retain manual/curated modes; never enable paid fallback |
@@ -73,13 +94,15 @@ No model-inference hardware spike is required: the final direction uses external
 
 ## Practical evaluation
 
+For the first learning milestone run the domain, persistence and learner journeys in the new delivery plan with AI unconfigured. The wider evaluation below applies when its associated features exist.
+
 Run A–F and offline scenario G end-to-end, with a recorded fixture-backed demonstration plus selected live free-model calls clearly labeled. Ask roughly 3–5 willing peers if available to try a learner or work scenario using nonconfidential material; this is a proposed convenience sample, not a recruitment prerequisite. Ask one experienced peer to review examples if available; otherwise identify the creator as the reviewer and document the limitation.
 
 Record time to useful output, irrelevant questions, substantive feedback errors/disputes, interruption recovery, reasons for abandoning, entry reuse and quota/latency. An optional later unaided changed scenario illustrates an observed outcome; report sample size and assistance without claiming causal learning benefit. Generated word count, XP and streaks are not success metrics.
 
 ## Acceptance-criterion mapping
 
-Numbers below refer to product brief section 17; these are implementation checkpoints, not claims of completed tests.
+Numbers below refer to product brief section 17 and the historical milestone catalog; these are future whole-product checkpoints, not current learning release gates or claims of completed tests.
 
 | Criterion | Design mechanism | Completion milestone |
 | --- | --- | --- |
@@ -118,6 +141,6 @@ Numbers below refer to product brief section 17; these are implementation checkp
 
 ## Scope cuts, in order
 
-For the first checkpoint, move additional native platforms, additional IDEs and E2 enterprise depth to the second window first. If needed, move N1/M5/I1/E1 there too while preserving their contracts and planned scope. Reduce six mechanisms to three while retaining teaching, explanation and changed scenarios. Keep one story format and reviewer-note template. Defer voice, decorative profile graphs and broad vacancy analysis before reducing the connected learning/work experience.
+For current learning Phase 1, keep production content breadth, authoring tools, scheduling/decay, exams, native clients, sync, integrations and AI out of the release rather than treating them as unfinished Phase 1 requirements. Preserve their contract boundaries. Later full-product scope can reduce platform/content/export breadth before weakening data integrity and user authority.
 
-Do not cut independent offline learning, durable local answers and sync, correction, explicit version-bound acknowledgement, factual approval, evidence provenance, usable experience reuse, user isolation or recovery from provider/device failure. Those establish the product's identity and credibility. Expanding deployment topology or adding RabbitMQ should follow an actual independent-consumer requirement; proficiency makes that feasible, not automatically necessary.
+Do not cut durable acknowledged Phase 1 answers, truthful evidence/assistance, owner isolation, retry safety or recoverable save failures. Offline remains a real Phase 4 obligation, not a Phase 1 claim. Correction, acknowledgement, factual approval and experience reuse retain their own broader-product authority guarantees. Add RabbitMQ or distributed deployment only for an actual independent-consumer requirement.

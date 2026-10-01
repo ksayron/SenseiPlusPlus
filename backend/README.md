@@ -87,9 +87,17 @@ Owner-scoped endpoints currently require an `X-Owner-Id` header. This is only a 
 boundary used to exercise owner isolation; it is not authentication. A real authenticated
 owner context must replace it before any non-local use.
 
-Updates require an `expectedVersion`. Stale updates return `409 Conflict`. Delete operations
+Updates require a strong `If-Match` header using the resource's ETag. Resources also expose
+an opaque `versionToken`. Missing preconditions return `428`, malformed tokens `400`, and
+stale versions `412 Precondition Failed`; `409` remains for domain/resource conflicts.
+Lists use `{ items, nextCursor }`, and errors use Problem Details with `code` and `traceId`.
+Numeric `expectedVersion` values remain internal application/domain details, not request-body fields.
+Delete operations
 preserve the documented lifecycles: concepts are deactivated, work/experience entries are
 archived, and evidence observations are withdrawn.
 
 `/health` includes PostgreSQL readiness. The root endpoint reports `postgresql` as the active
 persistence provider.
+
+The planned learning expansion is documented in [the learning system contract](../docs/09-learning-system.md).
+Sessions, exercises and scored knowledge projections described there are not implemented by that documentation change.

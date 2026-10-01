@@ -10,6 +10,9 @@ namespace Sensei.Modules.Learning.Infrastructure;
 public static class LearningInfrastructure
 {
     public static IServiceCollection AddLearningModule(this IServiceCollection services) => services
+        .AddScoped<ILearningStore, LearningStore>()
+        .AddScoped<LearningRuntime>()
+        .AddScoped<LearningFixtures>()
         .AddScoped<IConceptRepository, EfConceptRepository>()
         .AddScoped<IConceptService, ConceptService>();
 }

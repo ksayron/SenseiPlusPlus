@@ -59,6 +59,8 @@ public static class PersistenceRegistration
                 npgsql.MigrationsAssembly("Sensei.Host"));
         });
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<SenseiDbContext>());
+        services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddSingleton(TimeProvider.System);
         return services;
     }
 }

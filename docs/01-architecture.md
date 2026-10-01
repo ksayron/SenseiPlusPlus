@@ -1,10 +1,12 @@
 # Architecture and material alternatives
 
+**Learning update, 24 September 2026:** [Learning system](09-learning-system.md) governs the next milestone. Its core is AI-independent; full offline execution is Phase 4 and optional learning AI is Phase 6. The stack/provider comparisons below originate in the 17 September research, not a fresh dependency or provider audit. Current project/lock files determine the actual implementation versions; this documentation change does not upgrade them.
+
 ## Recommended system
 
-The creator's confirmed proficiency includes ASP.NET Core microservices, RabbitMQ and PostgreSQL. Recommendations should be justified by product boundaries and operational needs, not presumed inexperience. The revised delivery model includes required offline learning plus planned native, CLI/IDE and organization tracks; see [offline clients and expansion](08-offline-clients-and-expansion.md).
+The creator's confirmed proficiency includes ASP.NET Core microservices, RabbitMQ and PostgreSQL. Recommendations should be justified by product boundaries and operational needs, not presumed inexperience. Offline learning remains required in the longer-term product and is delivered in learning Phase 4; native, CLI/IDE and organization tracks remain later expansion. See [offline clients and expansion](08-offline-clients-and-expansion.md).
 
-Use **ASP.NET Core 10 / EF Core 10 / Npgsql EF provider 10, PostgreSQL 18, and a React 19.2 + TypeScript + Vite 8.3 client**. Serve the built client and HTTP API from the same origin. Use one backend process containing a bounded background worker, with durable work in PostgreSQL. **Initially run the application/database on the developer's machine; use free external inference through a configurable server-side adapter.** No Node server is needed in the packaged application.
+The original target was **ASP.NET Core 10 / EF Core 10 / Npgsql EF provider 10, PostgreSQL 18, and React + TypeScript + Vite**. The current backend remains on its repository-pinned .NET 9 foundation; runtime upgrades are a separate change. Serve built client and API from the same origin. **Run the application/database locally; core learning requires no inference.** Add a bounded worker and configurable free-only provider adapter only when the corresponding asynchronous/AI feature is implemented. No Node server is needed in the packaged application.
 
 .NET 10 is LTS through 14 November 2028; the retrieved support table lists 10.0.12. PostgreSQL 18 is supported through 14 November 2030; the retrieved table lists 18.6. Npgsql publishes its EF provider 10 release. Pin a compatible, supported patch set when implementation begins, rather than treating this research document as a lockfile. [Microsoft support policy](https://dotnet.microsoft.com/en-us/platform/support/policy), [PostgreSQL version policy](https://www.postgresql.org/support/versioning/), [Npgsql EF 10](https://www.npgsql.org/efcore/release-notes/10.0.html).
 
@@ -35,14 +37,14 @@ flowchart TB
     PG --> Backup[Encrypted backup on existing separate storage]
 ```
 
-Arrows between modules denote application contracts, not network calls or permission to write another module's tables. Runtime processing is described in [lifecycles](02-domain-and-lifecycles.md).
+This diagram depicts the target product including later offline/native/AI capabilities, not the Phase 1 dependency graph. Arrows between modules denote application contracts, not network calls or permission to write another module's tables. Runtime processing is described in [lifecycles](02-domain-and-lifecycles.md) and the current [learning submission contract](09-learning-system.md#5-session-lifecycle-and-transaction-protocol).
 
 ## Enforceable domain boundaries
 
 | Module | Owns | Public operations / consumes |
 | --- | --- | --- |
 | Identity and privacy | User, credentials, locale, privacy settings, export/deletion requests | Current owner context; authorize resource use; orchestrate deletion across modules |
-| Learning and content | Concepts, curated scenario versions, rubrics, learning sessions, review plans | Start independent learning; choose variant; schedule from evidence |
+| Learning and content | Concepts/relations, material/exercise versions, sessions/attempts/results, goals and roadmaps; review plans in Phase 2 | Start independent deterministic learning; choose variants; consume evidence summaries; later schedule from evidence |
 | Work reflection | Episodes, context snapshots, interpretation revisions, reflection sessions, acknowledgements | Correct context; ask bounded questions; summarize review; request journal draft |
 | Evidence and profile | Evidence observations, classification revisions, profile projection | Record narrow observations; expose provenance; rebuild derived views |
 | Experience and presentation | Journal revisions, contribution/impact claims, approved artifact revisions | Create manually or from reflection; approve facts; generate grounded story |
@@ -50,13 +52,13 @@ Arrows between modules denote application contracts, not network calls or permis
 
 Keep Knowledge/Competency and Professional Profile in the same module initially: evidence is the durable input, competency views are projections. A separate inference service would add little. Keep career presentation within Experience until actual interview planning deserves a separate module. Add an Organizations module in the expansion track for membership, curated team content and explicit revision-level sharing; personal records retain individual ownership. Client Sync owns operation receipts, change cursors and device registrations, while domain services authorize/apply each allowed command.
 
-Suggested source organization: API host; optional worker host; separate module assemblies with internal domain/application implementations and explicit public contracts; infrastructure adapters; client sync/policy contracts; web, native and CLI clients; focused tests. This is a proposed layout, not scaffolded code. Keep one backend EF unit of work for the first transactional core, with table/schema ownership and mapping grouped by module. This intentionally permits atomic cross-module source/evidence updates; separate DbContexts/services later only with explicit outbox/projection consistency semantics. Application code writes through owning module services. Architecture tests enforce dependencies; avoid assembly multiplication without an actual boundary.
+The repository already has the API host and Domain/Application/Infrastructure/Api module assemblies. Worker hosting, native/CLI clients and sync remain future additions. Keep one backend EF unit of work, with table/schema ownership and mapping grouped by module. This permits atomic cross-module source/evidence updates; separate DbContexts/services later only with explicit outbox/projection consistency semantics. Application code writes through owning module services; host adapters connect consumer-owned ports without direct module references. Architecture tests enforce dependencies.
 
 Shared primitives should be limited to identifiers, owner context, clock, optimistic concurrency, typed errors and integration contracts. Share low-level session record structures where useful, but retain distinct Learning and Reflection policies. Avoid one universal workflow engine or a giant chat domain.
 
 ## Transactions, events and durable work
 
-Use direct application commands for operations whose success the caller must know. Within one transaction, save the answer and its AI job; after validation, save feedback, observations and review updates together through module services. Synchronous in-process notifications can describe `AttemptAssessed`, `ExperienceRevisionApproved`, and `FeedbackSuperseded`. Their handlers run before commit or the transaction rolls back. Publish no required side effect only in memory after commit.
+Use direct application commands for operations whose success the caller must know. Phase 1 learning saves answer, deterministic result, activity event, evidence/projection, session progress and operation receipt in one transaction. No AI job is created for ordinary learning feedback. Later optional assessment saves input plus its job atomically and persists validated feedback/evidence in a subsequent guarded transaction. Synchronous in-process notifications can describe `AttemptAssessed`, `ExperienceRevisionApproved`, and `FeedbackSuperseded`; required handlers run before commit or the transaction rolls back. Publish no required side effect only in memory after commit.
 
 Model-derived experience drafting is a persisted job requested separately, never a side effect that silently approves a claim. Write asynchronous work requests in the same database transaction as their cause. This job table is an outbox-like reliability boundary from the first AI slice. It is not event sourcing: current aggregates and immutable revisions remain the source of truth. RabbitMQ becomes appropriate when independent integration/notification/projection consumers require fan-out and backpressure; the expansion design specifies transactional outbox, consumer deduplication and explicit projection lag rather than distributing existing transactions implicitly.
 
@@ -75,7 +77,7 @@ Model-derived experience drafting is a persisted job requested separately, never
 | AI provider | OpenRouter adapter and explicitly selected free model/endpoint; inspect capabilities and apply a zero-price ceiling | Another provider adapter is configuration-compatible after the same contract/evaluation checks; no automatic paid downgrade or upgrade |
 | Infrastructure | Local ASP.NET and PostgreSQL; free external inference; no paid services | One Linux VM or managed application when hosting is authorized; free quota remains independent of where the app runs |
 
-Choosing a custom job table entails real responsibility for leases, retry limits, fencing and crash tests. If the M1 recovery spike fails, switch to a maintained scheduler rather than expanding a home-grown queue framework.
+Choosing a custom job table for later asynchronous assessment entails responsibility for leases, retry limits, fencing and crash tests. If that feature's recovery spike fails, switch to a maintained scheduler rather than expanding a home-grown queue framework. This is not a dependency of Phase 1 deterministic learning.
 
 ## Storage and API shape
 
@@ -83,7 +85,7 @@ Relational columns and foreign keys hold ownership, versions, statuses, approval
 
 Text-only source snapshots and outputs fit PostgreSQL under input limits. Baseline has no attachment upload, repository clone, audio store or vector database. Use GIN-indexed `tsvector` over approved journal text, retaining owner filters and language configuration; code identifiers can use simple tokenization. [PostgreSQL text search indexes](https://www.postgresql.org/docs/18/textsearch-indexes.html).
 
-Use `/api/v1` JSON endpoints, generated OpenAPI, Problem Details, pagination, UTC instants plus user timezone, opaque IDs and version tokens. Every modifying request validates ownership server-side. Future clients use the same domain operations but can have different screens and authentication adapters. The client never receives database entities or model credentials.
+Use `/api/v1` JSON endpoints, generated OpenAPI, Problem Details, cursor pagination, UTC instants plus user timezone, opaque IDs and version tokens. Current mutable resources use ETag/If-Match: absent 428, malformed 400, stale 412. Domain conflicts remain 409. Every modifying request validates authority server-side. Future clients use the same domain operations but can have different screens and authentication adapters. The client never receives database entities, answer keys before authorized reveal, or model credentials.
 
 ## Licensing and maintenance
 

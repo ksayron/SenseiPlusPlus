@@ -18,5 +18,6 @@ internal static class DevelopmentDataSeeder
                 ({{DevelopmentOwnerId}}, 'developer@sensei.local', 'Local Developer', 'en', 'en', 'Europe/Minsk', {{DateTimeOffset.UtcNow}}, 1)
             ON CONFLICT (id) DO NOTHING;
             """);
+        await scope.ServiceProvider.GetRequiredService<Sensei.Modules.Learning.Application.LearningFixtures>().Seed();
     }
 }

@@ -1,5 +1,7 @@
 # Domain, provenance and lifecycles
 
+**Learning update, 24 September 2026:** the detailed [learning contract](09-learning-system.md) supersedes earlier learning-session examples here. Phase 1 has deterministic exercises and labeled self-review; dimensions/scheduling are Phase 2, full offline execution Phase 4 and optional learning AI Phase 6. Reflection, acknowledgement and experience lifecycles below remain broader product proposals, not implemented capabilities unless verified in code.
+
 ## Facts, claims and interpretations
 
 A fact that an answer was submitted is durable; the truth of that answer is not established by storing it. Likewise, approval establishes that the user confirmed an account, not that employment or impact was externally verified. Model output is an attributed interpretation. Profile indicators are derived views over those records.
@@ -58,7 +60,7 @@ Use owner-scoped composite foreign keys where practical: `(OwnerId, AttemptId)` 
 | Successful changed scenario later | New transfer observation with its scenario conditions | Certified competence or proven lack of outside assistance |
 | Timeout, skipped/irrelevant question, disputed verdict | Operational state or unresolved record | Failed understanding |
 
-Profile views show declarations, usage history, explanation/scenario observations, assistance, unresolved questions and refresh candidates separately. A narrow claim might read: “Explained scoped-service creation in two scenarios; one later attempt unaided; thread-safety evidence unresolved.” Show supporting records and dates. Do not compute a universal percentage. Recency affects practice priority, not the historical truth of an observation. Store model uncertainty and user confidence independently; a model's self-reported confidence is not a calibrated probability.
+Profile views show declarations, usage history, explanation/scenario observations, assistance and unresolved questions separately. A narrow claim might read: “Explained scoped-service creation in two scenarios; one later attempt unaided; thread-safety evidence unresolved.” Show supporting records and dates. Phase 1 uses a basic internal estimate with capped self-review influence but displays evidence summaries; Phase 2 adds qualified per-concept/dimension estimates and refresh scheduling. Do not compute a universal technology percentage. Recency affects practice priority, not the historical truth of an observation. Store model uncertainty and user confidence independently; a model's self-reported confidence is not a calibrated probability.
 
 Classification corrections append a revision and withdraw the old classification from active views. Original data remains inspectable until deletion. Journal approval can add exposure without modifying learning evidence; a disputed assessment is excluded from automatic knowledge conclusions until resolved.
 
@@ -67,7 +69,7 @@ Classification corrections append a revision and withdraw the old classification
 | Object | States and transitions | Guard |
 | --- | --- | --- |
 | Reflection session | `Draft → ContextConfirmed → Active → ReviewReady → Closed`; pause/resume from confirmed/active/review; abandon explicitly | Close reason is `acknowledged`, `finished_without_acknowledgement`, or `abandoned`; unanswered questions remain visible |
-| Learning session | `Created → Teaching/Attempting → FeedbackReady → Completed`; pause/resume; incomplete exit allowed | Provider job status is independent; completion can include skipped or assisted work |
+| Learning session | `Active ↔ Paused`; `Active → Completed`; active/paused → `EndedEarly` | Exact item versions pinned; answered/self-reviewed/skipped items complete traversal; immediate feedback in Phase 1; no AI dependency |
 | Job | `Queued → Running → Succeeded`; transient fault → `RetryScheduled → Running`; `Failed`, `Cancelled`, `Obsolete` terminal | Persist input first; no assessment evidence on operational failure |
 | Client operation | `PendingLocal → Sending → Accepted`; disconnect → `PendingLocal`; conflicts/rejections retain a receipt and a recoverable local record | Atomically save input and operation; retry same operation ID; deletion wins over stale updates |
 | Offline pack | `Downloading → Verified → Active`; incomplete downloads remain staged; versions become superseded | Activate all required assets atomically; unsynced attempts retain exact rubric/content version |
@@ -87,13 +89,15 @@ Compute a separate review-bundle fingerprint from that immutable source fingerpr
 
 Conservatively create a new snapshot for **any** changed assessed text or constraints; no model decides whether a change is material. Harmless cosmetic changes can cause rechecks, an acceptable prototype trade-off. Changing a journal title alone does not alter a source snapshot.
 
-Acknowledgement command includes snapshot ID, review-bundle version and expected session version. In one transaction lock/check the relevant session and episode current version, verify ownership and that the displayed bundle is still current, then insert the acknowledgement. Context edits use the same concurrency boundary. A racing stale request gets `409 Conflict` and a reload, not approval of the newer snapshot. A repeat with the same idempotency key returns the original acknowledgement. A user can still explicitly acknowledge an older snapshot from its historical view, labeled as historical only.
+Acknowledgement command includes snapshot ID, review-bundle version and the session's strong ETag in `If-Match`. In one transaction lock/check the relevant session and episode current version, verify ownership and that the displayed bundle is still current, then insert the acknowledgement. Context edits use the same concurrency boundary. A stale resource precondition gets `412 Precondition Failed` and a reload, not approval of newer input; absence is 428 and malformed tokens are 400. A semantic review-bundle conflict may use 409. A repeat with the same idempotency key returns the original acknowledgement. A user can explicitly acknowledge an older snapshot from its historical view, labeled as historical only.
 
-Draft entry approval and artifact export use equivalent expected-version guards. UI disabling alone is insufficient. Approval with unresolved questions is allowed and records them; missing feedback cannot be represented as assessed.
+Draft entry approval and artifact export use equivalent ETag/If-Match guards. Numeric expected versions are internal application details, not public request-body fields. UI disabling alone is insufficient. Approval with unresolved questions is allowed and records them; missing feedback cannot be represented as assessed.
 
 ## Reliable inference without losing answers
 
-1. `POST attempt` validates owner and expected session version. Commit immutable answer, hint-use references and queued job in one transaction. Return attempt/job IDs immediately; replaying the same owner-scoped idempotency key returns those IDs. Reusing the key with another body is a conflict.
+This section applies to later optional AI assessment and reflection. It does not describe the Phase 1 deterministic submission path, which commits answer/result/evidence/session/receipt together without a job. See [atomic submission](09-learning-system.md#5-session-lifecycle-and-transaction-protocol).
+
+1. `POST attempt` validates owner and `If-Match` session precondition for a new operation. Commit immutable answer, hint-use references and queued job in one transaction. Return attempt/job IDs immediately; replaying the same owner-scoped idempotency key returns those IDs before rejecting an otherwise stale replay precondition. Reusing the key with another body is a conflict.
 2. Worker claims due jobs using a short transaction and row lock, sets lease owner/expiry and increments a fencing token. PostgreSQL documents `SKIP LOCKED` for queue-like consumers. Commit before inference; never hold a database transaction across a model call. [PostgreSQL SELECT locking](https://www.postgresql.org/docs/18/sql-select.html).
 3. Load the exact input versions and provider configuration revision; verify source still exists, permission/disclosure still holds, the route remains free and session generation matches. Heartbeat a lease during long inference. Start with one inference at a time and an account-wide quota reservation.
 4. Call the configured adapter with bounded context/output and deadline. Persist an invocation record, including actual model/upstream provider when returned. Validate the result; then in one transaction recheck fencing token, cancellation generation, source availability and expected input version before saving feedback, evidence and dependent review changes.
