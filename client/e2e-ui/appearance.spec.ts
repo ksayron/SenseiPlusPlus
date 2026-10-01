@@ -108,7 +108,7 @@ test('topic tabs support keyboard, URLs and technical content in both themes', a
   await page.keyboard.press('ArrowRight')
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/section=material/)
-  await expect(page.getByRole('tabpanel')).toContainText('Where retries belong')
+  await expect(page.getByRole('tabpanel', { name: 'material', exact: true })).toContainText('Where retries belong')
   for (const appearance of ['coastal', 'coastal-night']) {
     if (appearance === 'coastal-night') await page.getByRole('button', { name: 'Night appearance' }).click()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -136,6 +136,8 @@ test('action labels and identifying field boundaries meet contrast targets', asy
     const action = page.getByRole('button', { name: 'New entry' })
     for (const hover of [false, true]) {
       if (hover) await action.hover()
+      // Measure the requested appearance after CSS transitions finish.
+      await action.evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)))
       const ratio = await action.evaluate(element => {
         const luminance = (color: string) => {
           const rgb = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map(value => {
