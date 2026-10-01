@@ -5,6 +5,8 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 ## What is implemented
 
 - A responsive dashboard organized around **learn → reflect → prove**.
+- Coastal / Coastal Night across the application, with a persistent appearance toggle, shared semantic tokens, local fonts and responsive layouts down to 320px.
+- Shared Base UI buttons, accessible form/recovery dialogs and keyboard-operated topic tabs; appearance changes preserve task input.
 - Concept library with create, edit, and deactivate flows.
 - Work reflection timeline with create, edit, and archive flows.
 - Context-preserving evidence profile with dispute and withdrawal actions.
@@ -47,4 +49,10 @@ The default empty base URL is correct for the development proxy and for a same-o
 ```powershell
 npm run lint
 npm run build
+npm test
+npm run test:ui
 ```
+
+`test:ui` uses deterministic intercepted responses in Edge at desktop, tablet and 320px phone widths; it needs only Vite. `test:e2e` verifies learning against the local backend and PostgreSQL. Set `PLAYWRIGHT_CHANNEL=msedge` to use installed Edge for that suite. `test:demo` checks the standalone component gallery.
+
+The common theme layer lives in `src/theme`; both the SPA and demo consume it. See [design decisions](../docs/ui/Sensei-SPA-Design-Guidelines.md) and [implementation and verified scope](../docs/ui/Sensei-SPA-Design-Implementation.md).
