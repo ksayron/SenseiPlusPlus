@@ -11,6 +11,7 @@ import {
   CircleCheck,
   Clock3,
   CloudOff,
+  Compass,
   FileCheck2,
   Gauge,
   Home,
@@ -221,6 +222,7 @@ function App() {
             </NavLink>
           ))}
         </nav>
+        <Link className="nav-item" to="/dev-roadmap"><Compass size={19} strokeWidth={1.8} /><span>Build journal</span><ArrowRight size={15} /></Link>
         <div className="sidebar-card">
           <div className="sidebar-card-icon"><Sparkles size={18} /></div>
           <p>Small sessions.<br />Useful understanding.</p>

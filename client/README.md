@@ -35,6 +35,10 @@ npm run dev
 
 Open `http://localhost:5173`. Vite proxies `/api` and `/health` to `http://localhost:5062`.
 
+The **Build journal** navigation link opens [`/dev-roadmap`](http://localhost:5173/dev-roadmap), a public project roadmap with checkpoint details, searchable development notes and bundled source records. This route has no authentication or owner guard and works without the backend. It uses its own field-journal visual style.
+
+Roadmap milestones and dated logs are curated in `src/roadmap/roadmap-data.ts`; update them when work is delivered. Historical verification counts are attributed to their source records rather than presented as live CI. `?milestone=learning` (or another milestone ID) links directly to a checkpoint. Repository source records are bundled at build time, so document updates appear on the next build.
+
 ## Environment
 
 For a separately hosted API, create `.env.local`:

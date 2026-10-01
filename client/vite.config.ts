@@ -14,6 +14,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    fs: { allow: [fileURLToPath(new URL('.', import.meta.url)), fileURLToPath(new URL('../docs', import.meta.url))] },
     proxy: {
       '/api': 'http://localhost:5062',
       '/health': 'http://localhost:5062',

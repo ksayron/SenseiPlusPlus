@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e-demo',
+  outputDir: './test-results/demo',
   fullyParallel: false,
   timeout: 30_000,
   use: { baseURL: 'http://127.0.0.1:5174', channel: process.env.PLAYWRIGHT_CHANNEL ?? (process.env.CI ? 'chromium' : 'msedge'), trace: 'retain-on-failure' },
