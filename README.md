@@ -12,6 +12,8 @@ The AI-independent local runtime is implemented; see the [implementation and ver
 The workspace now uses [local email/password authentication](docs/16-local-authentication.md).
 The [original learning specification](docs/inputs/learning-system-specification.md) is preserved unchanged.
 
+The optional [free-only AI gateway](docs/17-free-only-ai-gateway.md) has offline adapters and pilot tooling. AI configuration and live provider review are deferred; core learning does not call it.
+
 The [`backend`](backend/README.md) contains the modular-monolith host and domain-aware module CRUDs. The [`client`](client/README.md) is a responsive React + TypeScript workbench for learning, reflection, evidence, and revisioned experience.
 
 Local infrastructure is defined in [`compose.yaml`](compose.yaml). See the
