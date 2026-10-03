@@ -13,9 +13,9 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 - Revisioned experience journal with exact-revision approval.
 - API health state, Problem Details messages, loading/empty states, and optimistic-concurrency versions.
 - Complete Phase 1 topic/practice/session/goal/coverage flows with all six exercise formats, durable commands, acknowledged drafts and evidence history; see the [implementation record](../docs/13-learning-implementation.md).
-- A development-only owner identity stored in `localStorage` and sent as `X-Owner-Id` to owner-scoped endpoints.
+- Local email/password registration and sign-in, an HttpOnly session cookie, antiforgery-protected mutations, and account-isolated workspace state.
 
-The owner header matches the current backend boundary; it is not authentication and must be replaced before non-local use.
+See [local authentication and recovery](../docs/16-local-authentication.md). Existing development profiles receive no default password; use the documented interactive recovery command to access their preserved data. Hosted sign-up and recovery policy remain separate work.
 
 ## Run locally
 

@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Sensei.BuildingBlocks.Persistence;
 using Testcontainers.PostgreSql;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 
 namespace Sensei.Api.IntegrationTests;
 
@@ -38,7 +41,7 @@ public sealed class PostgreSqlFixture : IAsyncLifetime
     public SenseiWebApplicationFactory CreateFactory() => new(ConnectionString);
 }
 
-public sealed class SenseiWebApplicationFactory(string connectionString) : WebApplicationFactory<Program>
+public sealed class SenseiWebApplicationFactory(string connectionString, bool testOwners = true) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -47,7 +50,16 @@ public sealed class SenseiWebApplicationFactory(string connectionString) : WebAp
             configuration.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:Sensei"] = connectionString,
-                ["Database:SeedDevelopmentOwner"] = "false"
+                ["Database:SeedDevelopmentOwner"] = "false",
+                ["Authentication:EnableTestOwnerHeader"] = testOwners.ToString()
             }));
+        if (testOwners) builder.ConfigureTestServices(services =>
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "TestSelector";
+                options.DefaultChallengeScheme = "TestSelector";
+            }).AddScheme<AuthenticationSchemeOptions, TestOwnerHandler>("TestOwner", _ => { })
+              .AddPolicyScheme("TestSelector", null, options => options.ForwardDefaultSelector = context =>
+                  context.Request.Cookies.ContainsKey("sensei.session") ? IdentityConstants.ApplicationScheme : "TestOwner"));
     }
 }

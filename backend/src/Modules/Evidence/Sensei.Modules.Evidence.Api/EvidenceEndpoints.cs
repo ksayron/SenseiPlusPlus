@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Sensei.BuildingBlocks.Api;
+using Sensei.BuildingBlocks.Application;
 using Sensei.Modules.Evidence.Application;
 using Sensei.Modules.Evidence.Domain;
 
@@ -23,13 +24,13 @@ public static class EvidenceEndpoints
 
     public static IEndpointRouteBuilder MapEvidenceEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/evidence/observations").WithTags("Evidence and Profile");
+        var group = endpoints.MapGroup("/api/v1/evidence/observations").WithTags("Evidence and Profile").RequireAuthorization();
 
         group.MapPost("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, CreateEvidenceObservationRequest request,
+            ICurrentOwner currentOwner, CreateEvidenceObservationRequest request,
             HttpContext context, IEvidenceObservationService service, CancellationToken cancellationToken) =>
         {
-            var observation = await service.CreateAsync(ownerId, new CreateEvidenceObservationCommand(
+            var observation = await service.CreateAsync(currentOwner.Id, new CreateEvidenceObservationCommand(
                 request.ConceptId, request.Aspect, request.SignalKind, request.SourceKind,
                 request.SourceId, request.Assistance, request.Conditions), cancellationToken);
             return HttpContract.CreatedVersioned(context.Response, $"/api/v1/evidence/observations/{observation.Id}", Map(observation), observation.Version);
@@ -40,13 +41,13 @@ public static class EvidenceEndpoints
         .ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapGet("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, Guid? conceptId, bool? includeInactive,
+            ICurrentOwner currentOwner, Guid? conceptId, bool? includeInactive,
             int? limit, string? cursor, IEvidenceObservationService service, CancellationToken cancellationToken) =>
         {
-            var observations = (await service.ListAsync(ownerId, conceptId, includeInactive ?? false, cancellationToken))
+            var observations = (await service.ListAsync(currentOwner.Id, conceptId, includeInactive ?? false, cancellationToken))
                 .Select(Map).ToArray();
             return Results.Ok(HttpContract.Page(observations, limit, cursor,
-                $"{EndpointId}:{ownerId}:{conceptId}:{includeInactive ?? false}",
+                $"{EndpointId}:{currentOwner.Id}:{conceptId}:{includeInactive ?? false}",
                 observation => observation.ObservedAt.ToString("O"), observation => observation.Id));
         })
         .WithName("ListEvidenceObservations")
@@ -54,10 +55,10 @@ public static class EvidenceEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId, HttpContext context,
+            Guid id, ICurrentOwner currentOwner, HttpContext context,
             IEvidenceObservationService service, CancellationToken cancellationToken) =>
         {
-            var observation = await service.GetAsync(ownerId, id, cancellationToken);
+            var observation = await service.GetAsync(currentOwner.Id, id, cancellationToken);
             return observation is null
                 ? HttpContract.NotFound(context)
                 : HttpContract.OkVersioned(context.Response, Map(observation), observation.Version);
@@ -67,11 +68,11 @@ public static class EvidenceEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id:guid}/status", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, UpdateEvidenceStatusRequest request,
             HttpContext context, IEvidenceObservationService service, CancellationToken cancellationToken) =>
         {
-            var observation = await service.ChangeStatusAsync(ownerId, id,
+            var observation = await service.ChangeStatusAsync(currentOwner.Id, id,
                 new UpdateEvidenceStatusCommand(request.Status, HttpContract.RequireVersion(ifMatch)), cancellationToken);
             return observation is null
                 ? HttpContract.NotFound(context)
@@ -85,10 +86,10 @@ public static class EvidenceEndpoints
         .ProducesProblem(StatusCodes.Status428PreconditionRequired);
 
         group.MapDelete("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, HttpContext context,
             IEvidenceObservationService service, CancellationToken cancellationToken) =>
-            await service.WithdrawAsync(ownerId, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
+            await service.WithdrawAsync(currentOwner.Id, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
                 ? Results.NoContent()
                 : HttpContract.NotFound(context))
         .WithName("WithdrawEvidenceObservation")

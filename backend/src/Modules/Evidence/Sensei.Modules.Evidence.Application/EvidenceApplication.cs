@@ -60,7 +60,7 @@ public interface IEvidenceObservationService
 }
 
 public sealed class EvidenceObservationService(IEvidenceObservationRepository repository, IUnitOfWork unitOfWork,
-    KnowledgeService knowledge, ITransactionRunner transactions)
+    KnowledgeService knowledge, ITransactionRunner transactions, IEvidenceSourceAccess sources)
     : IEvidenceObservationService
 {
     public async Task<EvidenceObservationResponse> CreateAsync(
@@ -68,6 +68,7 @@ public sealed class EvidenceObservationService(IEvidenceObservationRepository re
         CreateEvidenceObservationCommand command,
         CancellationToken cancellationToken)
     {
+        await sources.RequireAsync(ownerId, command.SourceKind, command.SourceId, cancellationToken);
         var observation = EvidenceObservation.Create(
             ownerId,
             command.ConceptId,

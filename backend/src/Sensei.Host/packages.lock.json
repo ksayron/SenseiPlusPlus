@@ -218,7 +218,10 @@
         }
       },
       "sensei.buildingblocks.api": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Sensei.BuildingBlocks.Application": "[1.0.0, )"
+        }
       },
       "sensei.buildingblocks.application": {
         "type": "Project"
@@ -301,6 +304,7 @@
       "sensei.modules.identity.infrastructure": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.12, )",
           "Sensei.BuildingBlocks.Persistence": "[1.0.0, )",
           "Sensei.Modules.Identity.Application": "[1.0.0, )",
           "Sensei.Modules.Identity.Domain": "[1.0.0, )"
@@ -354,6 +358,15 @@
           "Sensei.BuildingBlocks.Persistence": "[1.0.0, )",
           "Sensei.Modules.WorkReflection.Application": "[1.0.0, )",
           "Sensei.Modules.WorkReflection.Domain": "[1.0.0, )"
+        }
+      },
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "7W/9vKC65y41W6JXwC6WSU++D43wY/ANhrm7tJdbm2lrbzNkYClja6uL3Cg69y+PJ1Q4nARb3eWs9PNMWCdYxQ==",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Relational": "10.0.12"
         }
       },
       "Microsoft.EntityFrameworkCore": {

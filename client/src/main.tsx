@@ -1,6 +1,7 @@
 import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { AuthGate, SignOutPage } from './auth/AuthGate'
 import '@fontsource/plus-jakarta-sans/latin-400.css'
 import '@fontsource/plus-jakarta-sans/latin-500.css'
 import '@fontsource/plus-jakarta-sans/latin-600.css'
@@ -15,7 +16,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 const DevRoadmapPage = lazy(() => import('./roadmap/DevRoadmapPage'))
 const router = createBrowserRouter([
   { path: '/dev-roadmap', element: <Suspense fallback={<p role="status">Opening the build journal…</p>}><DevRoadmapPage /></Suspense> },
-  { path: '*', element: <App /> },
+  { path: '/sign-out', element: <AuthGate><SignOutPage /></AuthGate> },
+  { path: '*', element: <AuthGate><App /></AuthGate> },
 ])
 applyTheme(loadAppearance())
 

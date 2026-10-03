@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Sensei.BuildingBlocks.Api;
+using Sensei.BuildingBlocks.Application;
 using Sensei.Modules.Experience.Application;
 using Sensei.Modules.Experience.Domain;
 
@@ -25,13 +26,13 @@ public static class ExperienceEndpoints
 
     public static IEndpointRouteBuilder MapExperienceEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/experience/entries").WithTags("Experience and Presentation");
+        var group = endpoints.MapGroup("/api/v1/experience/entries").WithTags("Experience and Presentation").RequireAuthorization();
 
         group.MapPost("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, ExperienceRevisionRequest request,
+            ICurrentOwner currentOwner, ExperienceRevisionRequest request,
             HttpContext context, IExperienceEntryService service, CancellationToken cancellationToken) =>
         {
-            var entry = await service.CreateAsync(ownerId, new CreateExperienceEntryCommand(
+            var entry = await service.CreateAsync(currentOwner.Id, new CreateExperienceEntryCommand(
                 request.Title, request.Setting, request.Context, request.Role, request.Actions,
                 request.Alternatives, request.Outcome, request.ImpactState, request.ConceptIds), cancellationToken);
             return HttpContract.CreatedVersioned(context.Response, $"/api/v1/experience/entries/{entry.Id}", Map(entry), entry.Version);
@@ -42,11 +43,11 @@ public static class ExperienceEndpoints
         .ProducesProblem(StatusCodes.Status409Conflict);
 
         group.MapGet("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, bool? includeArchived, int? limit, string? cursor,
+            ICurrentOwner currentOwner, bool? includeArchived, int? limit, string? cursor,
             IExperienceEntryService service, CancellationToken cancellationToken) =>
         {
-            var entries = (await service.ListAsync(ownerId, includeArchived ?? false, cancellationToken)).Select(Map).ToArray();
-            return Results.Ok(HttpContract.Page(entries, limit, cursor, $"{EndpointId}:{ownerId}:{includeArchived ?? false}",
+            var entries = (await service.ListAsync(currentOwner.Id, includeArchived ?? false, cancellationToken)).Select(Map).ToArray();
+            return Results.Ok(HttpContract.Page(entries, limit, cursor, $"{EndpointId}:{currentOwner.Id}:{includeArchived ?? false}",
                 entry => entry.CreatedAt.ToString("O"), entry => entry.Id));
         })
         .WithName("ListExperienceEntries")
@@ -54,10 +55,10 @@ public static class ExperienceEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId, HttpContext context,
+            Guid id, ICurrentOwner currentOwner, HttpContext context,
             IExperienceEntryService service, CancellationToken cancellationToken) =>
         {
-            var entry = await service.GetAsync(ownerId, id, cancellationToken);
+            var entry = await service.GetAsync(currentOwner.Id, id, cancellationToken);
             return entry is null ? HttpContract.NotFound(context) : HttpContract.OkVersioned(context.Response, Map(entry), entry.Version);
         })
         .WithName("GetExperienceEntry")
@@ -65,11 +66,11 @@ public static class ExperienceEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, ExperienceRevisionRequest request,
             HttpContext context, IExperienceEntryService service, CancellationToken cancellationToken) =>
         {
-            var entry = await service.ReviseAsync(ownerId, id, new ReviseExperienceEntryCommand(
+            var entry = await service.ReviseAsync(currentOwner.Id, id, new ReviseExperienceEntryCommand(
                 request.Title, request.Setting, request.Context, request.Role, request.Actions,
                 request.Alternatives, request.Outcome, request.ImpactState, request.ConceptIds,
                 HttpContract.RequireVersion(ifMatch)), cancellationToken);
@@ -83,11 +84,11 @@ public static class ExperienceEndpoints
         .ProducesProblem(StatusCodes.Status428PreconditionRequired);
 
         group.MapPost("/{id:guid}/revisions/{revisionNumber:int}/approval", async (
-            Guid id, int revisionNumber, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, int revisionNumber, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, HttpContext context,
             IExperienceEntryService service, CancellationToken cancellationToken) =>
         {
-            var entry = await service.ApproveAsync(ownerId, id, revisionNumber,
+            var entry = await service.ApproveAsync(currentOwner.Id, id, revisionNumber,
                 new ApproveExperienceRevisionCommand(HttpContract.RequireVersion(ifMatch)), cancellationToken);
             return entry is null ? HttpContract.NotFound(context) : HttpContract.OkVersioned(context.Response, Map(entry), entry.Version);
         })
@@ -99,10 +100,10 @@ public static class ExperienceEndpoints
         .ProducesProblem(StatusCodes.Status428PreconditionRequired);
 
         group.MapDelete("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, HttpContext context,
             IExperienceEntryService service, CancellationToken cancellationToken) =>
-            await service.ArchiveAsync(ownerId, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
+            await service.ArchiveAsync(currentOwner.Id, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
                 ? Results.NoContent()
                 : HttpContract.NotFound(context))
         .WithName("ArchiveExperienceEntry")

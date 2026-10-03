@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Sensei.BuildingBlocks.Api;
+using Sensei.BuildingBlocks.Application;
 using Sensei.Modules.WorkReflection.Application;
 using Sensei.Modules.WorkReflection.Domain;
 
@@ -20,13 +21,13 @@ public static class WorkReflectionEndpoints
 
     public static IEndpointRouteBuilder MapWorkReflectionEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/work/episodes").WithTags("Work Reflection");
+        var group = endpoints.MapGroup("/api/v1/work/episodes").WithTags("Work Reflection").RequireAuthorization();
 
         group.MapPost("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, CreateWorkEpisodeRequest request,
+            ICurrentOwner currentOwner, CreateWorkEpisodeRequest request,
             HttpContext context, IWorkEpisodeService service, CancellationToken cancellationToken) =>
         {
-            var episode = await service.CreateAsync(ownerId, new CreateWorkEpisodeCommand(
+            var episode = await service.CreateAsync(currentOwner.Id, new CreateWorkEpisodeCommand(
                 request.Title, request.Setting, request.EventDate, request.Role, request.Summary), cancellationToken);
             return HttpContract.CreatedVersioned(context.Response, $"/api/v1/work/episodes/{episode.Id}", Map(episode), episode.Version);
         })
@@ -35,11 +36,11 @@ public static class WorkReflectionEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/", async (
-            [FromHeader(Name = "X-Owner-Id")] Guid ownerId, bool? includeArchived, int? limit, string? cursor,
+            ICurrentOwner currentOwner, bool? includeArchived, int? limit, string? cursor,
             IWorkEpisodeService service, CancellationToken cancellationToken) =>
         {
-            var episodes = (await service.ListAsync(ownerId, includeArchived ?? false, cancellationToken)).Select(Map).ToArray();
-            return Results.Ok(HttpContract.Page(episodes, limit, cursor, $"{EndpointId}:{ownerId}:{includeArchived ?? false}",
+            var episodes = (await service.ListAsync(currentOwner.Id, includeArchived ?? false, cancellationToken)).Select(Map).ToArray();
+            return Results.Ok(HttpContract.Page(episodes, limit, cursor, $"{EndpointId}:{currentOwner.Id}:{includeArchived ?? false}",
                 episode => episode.EventDate.ToString("yyyy-MM-dd"), episode => episode.Id));
         })
         .WithName("ListWorkEpisodes")
@@ -47,10 +48,10 @@ public static class WorkReflectionEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId, HttpContext context,
+            Guid id, ICurrentOwner currentOwner, HttpContext context,
             IWorkEpisodeService service, CancellationToken cancellationToken) =>
         {
-            var episode = await service.GetAsync(ownerId, id, cancellationToken);
+            var episode = await service.GetAsync(currentOwner.Id, id, cancellationToken);
             return episode is null ? HttpContract.NotFound(context) : HttpContract.OkVersioned(context.Response, Map(episode), episode.Version);
         })
         .WithName("GetWorkEpisode")
@@ -58,11 +59,11 @@ public static class WorkReflectionEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPut("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, UpdateWorkEpisodeRequest request,
             HttpContext context, IWorkEpisodeService service, CancellationToken cancellationToken) =>
         {
-            var episode = await service.UpdateAsync(ownerId, id, new UpdateWorkEpisodeCommand(
+            var episode = await service.UpdateAsync(currentOwner.Id, id, new UpdateWorkEpisodeCommand(
                 request.Title, request.Setting, request.EventDate, request.Role, request.Summary,
                 HttpContract.RequireVersion(ifMatch)), cancellationToken);
             return episode is null ? HttpContract.NotFound(context) : HttpContract.OkVersioned(context.Response, Map(episode), episode.Version);
@@ -75,10 +76,10 @@ public static class WorkReflectionEndpoints
         .ProducesProblem(StatusCodes.Status428PreconditionRequired);
 
         group.MapDelete("/{id:guid}", async (
-            Guid id, [FromHeader(Name = "X-Owner-Id")] Guid ownerId,
+            Guid id, ICurrentOwner currentOwner,
             [FromHeader(Name = "If-Match")] string? ifMatch, HttpContext context,
             IWorkEpisodeService service, CancellationToken cancellationToken) =>
-            await service.ArchiveAsync(ownerId, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
+            await service.ArchiveAsync(currentOwner.Id, id, HttpContract.RequireVersion(ifMatch), cancellationToken)
                 ? Results.NoContent()
                 : HttpContract.NotFound(context))
         .WithName("ArchiveWorkEpisode")

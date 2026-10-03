@@ -27,7 +27,7 @@ public sealed record TopicResource(ConceptResource Concept, ConceptRelation[] Re
 
 public static class LearningRuntimeEndpoints
 {
-    private static Guid Owner(HttpContext c) => Guid.TryParse(c.Request.Headers["X-Owner-Id"], out var id) && id != Guid.Empty ? id : throw new ArgumentException("X-Owner-Id is required.");
+    private static Guid Owner(HttpContext c) => c.OwnerId();
     private static SessionResource Map(SessionView v) => new(v.Session.Id, v.Session.State, v.Session.Position, v.Session.RequestedCount, v.Session.ActualCount, v.Session.ReturnContext, v.Session.CreatedAt, HttpContract.VersionToken(v.Session.Version), v.Items);
     private static GoalResource Map(GoalView v) => new(v.Goal.Id, v.Goal.Intention, v.ConceptIds, v.Goal.RoadmapVersionId, v.Goal.Archived, HttpContract.VersionToken(v.Goal.Version));
     private static EnrollmentResource Map(RoadmapEnrollment e) => new(e.Id, e.RoadmapVersionId, e.Paused, e.CurrentStageId, HttpContract.VersionToken(e.Version));
@@ -42,7 +42,7 @@ public static class LearningRuntimeEndpoints
     private static PageEnvelope<T> Page<T>(T[] values, int? limit, string? cursor, string scope, Func<T, Guid> id) => HttpContract.Page(values.OrderBy(id).ToArray(), limit, cursor, scope, x => id(x).ToString(), id);
     public static IEndpointRouteBuilder MapLearningRuntime(this IEndpointRouteBuilder endpoints)
     {
-        var g = endpoints.MapGroup("/api/v1/learning").WithTags("Learning runtime");
+        var g = endpoints.MapGroup("/api/v1/learning").WithTags("Learning runtime").RequireAuthorization();
         g.MapGet("/topics", async (string? search, Guid? parent, int? limit, string? cursor, LearningRuntime r, CancellationToken ct) => Results.Ok(Page((await r.Topics(search, parent, ct)).Select(Map).ToArray(), limit, cursor, $"topics:{search}:{parent}", x => x.Concept.Id))).WithName("BrowseLearningTopics").Produces<PageEnvelope<TopicResource>>();
         g.MapGet("/topics/{id:guid}", async (Guid id, LearningRuntime r, CancellationToken ct) => Results.Ok(Map((await r.Topics(null, null, ct)).SingleOrDefault(x => x.Concept.Id == id) ?? throw new Sensei.BuildingBlocks.Application.ResourceNotFoundException()))).WithName("GetLearningTopic").Produces<TopicResource>();
         g.MapPost("/concept-relations", async (RelationRequest body, LearningRuntime r, CancellationToken ct) => Results.Ok(await r.AddRelation(body.SourceId, body.TargetId, body.Kind, ct))).WithName("CreateConceptRelation").Produces<ConceptRelation>();
@@ -114,11 +114,11 @@ public static class LearningRuntimeEndpoints
         g.MapGet("/roadmap-enrollments", async (int? limit, string? cursor, HttpContext c, LearningRuntime r, CancellationToken ct) => { var owner = Owner(c); return Results.Ok(Page((await r.List<RoadmapEnrollment>(x => x.OwnerId == owner, ct)).Select(Map).ToArray(), limit, cursor, $"enrollments:{owner}", x => x.Id)); }).WithName("ListRoadmapEnrollments").Produces<PageEnvelope<EnrollmentResource>>();
         g.MapPost("/roadmap-enrollments", async (EnrollmentRequest body, HttpContext c, LearningRuntime r, CancellationToken ct) => { var owner = Owner(c); var outcome = await r.Enroll(owner, body.OperationId, body.RoadmapVersionId, ct); var enrollment = await r.Required<RoadmapEnrollment>(x => x.OwnerId == owner && x.Id == outcome.OutcomeId, ct); return HttpContract.OkVersioned(c.Response, Map(enrollment), enrollment.Version); }).WithName("EnrollInRoadmap").Produces<EnrollmentResource>();
         g.MapPut("/roadmap-enrollments/{id:guid}", async (Guid id, EnrollmentUpdate body, HttpContext c, LearningRuntime r, CancellationToken ct) => { var owner = Owner(c); if (body.Traversal == "Practiced") throw new ArgumentException("Practice traversal is recorded by session creation."); await r.UpdateEnrollment(owner, id, HttpContract.RequireVersion(c.Request), body.OperationId, body.Paused, body.StageId, body.Traversal, ct); var enrollment = await r.Required<RoadmapEnrollment>(x => x.OwnerId == owner && x.Id == id, ct); return HttpContract.OkVersioned(c.Response, Map(enrollment), enrollment.Version); }).WithName("UpdateRoadmapEnrollment").Produces<EnrollmentResource>();
-        endpoints.MapGet("/api/v1/evidence/knowledge", async (int? limit, string? cursor, HttpContext c, LearningRuntime r, CancellationToken ct) => Results.Ok(Page((await r.Knowledge(Owner(c), null, ct)).Select(Map).ToArray(), limit, cursor, $"knowledge:{Owner(c)}", x => x.ConceptId))).WithTags("Evidence and Profile").WithName("ListKnowledgeSummaries").Produces<PageEnvelope<KnowledgeResource>>();
+        endpoints.MapGet("/api/v1/evidence/knowledge", async (int? limit, string? cursor, HttpContext c, LearningRuntime r, CancellationToken ct) => Results.Ok(Page((await r.Knowledge(Owner(c), null, ct)).Select(Map).ToArray(), limit, cursor, $"knowledge:{Owner(c)}", x => x.ConceptId))).RequireAuthorization().WithTags("Evidence and Profile").WithName("ListKnowledgeSummaries").Produces<PageEnvelope<KnowledgeResource>>();
         endpoints.MapGet("/api/v1/evidence/knowledge/{id:guid}", async (Guid id, HttpContext c, LearningRuntime r, CancellationToken ct) =>
         {
             await r.Required<Concept>(x => x.Id == id, ct); return Results.Ok((await r.Knowledge(Owner(c), id, ct)).Select(Map).SingleOrDefault() ?? new KnowledgeResource(id, 0, 0, 0, 0, 0, null, [], null));
-        }).WithTags("Evidence and Profile").WithName("GetKnowledgeSummary").Produces<KnowledgeResource>();
+        }).RequireAuthorization().WithTags("Evidence and Profile").WithName("GetKnowledgeSummary").Produces<KnowledgeResource>();
         return endpoints;
     }
 }

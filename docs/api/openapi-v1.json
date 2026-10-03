@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Sensei++ API",
-    "description": "Versioned API. Owner-scoped operations require X-Owner-Id during development; this header selects an owner and is not authentication. Production authentication is not implemented yet. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Creates do not require If-Match and return the initial ETag. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
+    "description": "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Creates do not require If-Match and return the initial ETag. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
     "version": "v1"
   },
   "paths": {
@@ -79,16 +79,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
           }
         ],
         "responses": {
@@ -131,8 +121,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/evidence/knowledge/{id}": {
@@ -145,16 +143,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -202,8 +190,271 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/csrf": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "GetAntiforgeryToken",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "RegisterAccount",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSession"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "SignInAccount",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "GetCurrentAccount",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "SignOutAccount",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/reauthenticate": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "ReauthenticateAccount",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReauthenticateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/reauthentication": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "CheckRecentAuthentication",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/identity/users": {
@@ -212,6 +463,17 @@
           "Identity"
         ],
         "operationId": "CreateUser",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -260,8 +522,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -315,8 +585,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/identity/users/{id}": {
@@ -364,8 +642,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -386,6 +672,15 @@
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -460,8 +755,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -482,6 +785,15 @@
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -541,8 +853,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/concepts": {
@@ -551,6 +871,17 @@
           "Learning"
         ],
         "operationId": "CreateConcept",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -599,8 +930,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -661,8 +1000,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/concepts/{id}": {
@@ -710,8 +1057,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -732,6 +1087,15 @@
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -806,8 +1170,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -828,6 +1200,15 @@
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -877,8 +1258,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/topics": {
@@ -969,8 +1358,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/topics/{id}": {
@@ -1030,8 +1427,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/concept-relations": {
@@ -1040,6 +1445,17 @@
           "Learning runtime"
         ],
         "operationId": "CreateConceptRelation",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1090,8 +1506,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/materials/{id}": {
@@ -1151,8 +1575,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/material-views": {
@@ -1163,13 +1595,12 @@
         "operationId": "RecordMaterialView",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -1223,8 +1654,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/session-previews": {
@@ -1235,13 +1674,12 @@
         "operationId": "PreviewLearningSession",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -1295,8 +1733,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions": {
@@ -1307,13 +1753,12 @@
         "operationId": "StartLearningSession",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -1375,8 +1820,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -1414,16 +1867,6 @@
             "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
             }
           }
         ],
@@ -1467,8 +1910,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}": {
@@ -1481,16 +1932,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -1546,8 +1987,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/summary": {
@@ -1560,16 +2009,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -1617,8 +2056,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}": {
@@ -1640,16 +2087,6 @@
           {
             "name": "item",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -1697,8 +2134,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/pause": {
@@ -1718,19 +2163,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -1815,8 +2259,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/resume": {
@@ -1836,19 +2288,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -1933,8 +2384,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/end": {
@@ -1954,19 +2413,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2051,8 +2509,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/advance": {
@@ -2072,19 +2538,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2169,8 +2634,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}/draft": {
@@ -2199,19 +2672,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2296,8 +2768,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}/attempts": {
@@ -2326,19 +2806,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2423,8 +2902,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}/self-reviews": {
@@ -2453,19 +2940,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2550,8 +3036,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}/skip": {
@@ -2580,19 +3074,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2677,8 +3170,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/sessions/{id}/items/{item}/assistance": {
@@ -2707,19 +3208,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -2804,8 +3304,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -2825,16 +3333,6 @@
           {
             "name": "item",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -2882,8 +3380,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/attempts/{id}": {
@@ -2896,16 +3402,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -2953,8 +3449,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/activity": {
@@ -3003,16 +3507,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
           }
         ],
         "responses": {
@@ -3055,8 +3549,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/goals": {
@@ -3089,16 +3591,6 @@
             "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
             }
           }
         ],
@@ -3142,8 +3634,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -3152,13 +3652,12 @@
         "operationId": "CreateLearningGoal",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -3220,8 +3719,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/goals/{id}": {
@@ -3241,19 +3748,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3338,8 +3844,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -3357,19 +3871,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3437,8 +3950,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/roadmaps": {
@@ -3514,8 +4035,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/roadmaps/{id}": {
@@ -3528,16 +4057,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -3585,8 +4104,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/roadmap-enrollments": {
@@ -3619,16 +4146,6 @@
             "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
             }
           }
         ],
@@ -3672,8 +4189,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "post": {
         "tags": [
@@ -3682,13 +4207,12 @@
         "operationId": "EnrollInRoadmap",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -3750,8 +4274,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/learning/roadmap-enrollments/{id}": {
@@ -3771,19 +4303,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -3868,8 +4399,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/work/episodes": {
@@ -3880,13 +4419,12 @@
         "operationId": "CreateWorkEpisode",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -3928,8 +4466,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -3937,16 +4483,6 @@
         ],
         "operationId": "ListWorkEpisodes",
         "parameters": [
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "includeArchived",
             "in": "query",
@@ -4000,8 +4536,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/work/episodes/{id}": {
@@ -4014,16 +4558,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -4059,8 +4593,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -4078,19 +4620,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4165,8 +4706,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -4184,19 +4733,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4246,8 +4794,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/evidence/observations": {
@@ -4258,13 +4814,12 @@
         "operationId": "CreateEvidenceObservation",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -4316,8 +4871,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -4325,16 +4888,6 @@
         ],
         "operationId": "ListEvidenceObservations",
         "parameters": [
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "conceptId",
             "in": "query",
@@ -4396,8 +4949,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/evidence/observations/{id}": {
@@ -4410,16 +4971,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -4455,8 +5006,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -4474,19 +5033,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4536,8 +5094,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/evidence/observations/{id}/status": {
@@ -4557,19 +5123,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4644,8 +5209,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/experience/entries": {
@@ -4656,13 +5229,12 @@
         "operationId": "CreateExperienceEntry",
         "parameters": [
           {
-            "name": "X-Owner-Id",
+            "name": "X-CSRF-Token",
             "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "string"
             }
           }
         ],
@@ -4714,8 +5286,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -4723,16 +5303,6 @@
         ],
         "operationId": "ListExperienceEntries",
         "parameters": [
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
           {
             "name": "includeArchived",
             "in": "query",
@@ -4786,8 +5356,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/experience/entries/{id}": {
@@ -4800,16 +5378,6 @@
           {
             "name": "id",
             "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
             "required": true,
             "schema": {
               "type": "string",
@@ -4845,8 +5413,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -4864,19 +5440,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -4951,8 +5526,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -4970,19 +5553,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -5032,8 +5614,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/experience/entries/{id}/revisions/{revisionNumber}/approval": {
@@ -5063,19 +5653,18 @@
             }
           },
           {
-            "name": "X-Owner-Id",
-            "in": "header",
-            "description": "Required development owner selector (UUID). This is not authentication.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
             "name": "If-Match",
             "in": "header",
             "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
             "required": true,
             "schema": {
               "type": "string"
@@ -5140,13 +5729,53 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Sign in required"
           }
-        }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     }
   },
   "components": {
     "schemas": {
+      "AccountSession": {
+        "required": [
+          "id",
+          "email",
+          "displayName",
+          "uiLocale",
+          "answerLanguage",
+          "timeZone"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "uiLocale": {
+            "type": "string"
+          },
+          "answerLanguage": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        }
+      },
       "ActivityReceipt": {
         "required": [
           "operationId",
@@ -6425,6 +7054,21 @@
           }
         }
       },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
       "MaterialResource": {
         "required": [
           "id",
@@ -6847,6 +7491,48 @@
           "traceId": {
             "type": "string",
             "description": "Request trace identifier for diagnostics."
+          }
+        }
+      },
+      "ReauthenticateRequest": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "password",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "uiLocale": {
+            "type": "string",
+            "default": "en"
+          },
+          "answerLanguage": {
+            "type": "string",
+            "default": "en"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "UTC"
           }
         }
       },
@@ -7432,6 +8118,13 @@
           "Other"
         ]
       }
+    },
+    "securitySchemes": {
+      "SessionCookie": {
+        "type": "apiKey",
+        "name": "sensei.session",
+        "in": "cookie"
+      }
     }
   },
   "tags": [
@@ -7440,6 +8133,9 @@
     },
     {
       "name": "Evidence and Profile"
+    },
+    {
+      "name": "Authentication"
     },
     {
       "name": "Identity"

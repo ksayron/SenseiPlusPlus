@@ -9,6 +9,7 @@ Start with the [design package](docs/README.md). The supplied [product brief](do
 The Phase 1 learning subsystem is specified in the [learning system design](docs/09-learning-system.md),
 [learner experience](docs/10-learning-experience.md), and [delivery plan](docs/11-learning-delivery-plan.md).
 The AI-independent local runtime is implemented; see the [implementation and verification record](docs/13-learning-implementation.md).
+The workspace now uses [local email/password authentication](docs/16-local-authentication.md).
 The [original learning specification](docs/inputs/learning-system-specification.md) is preserved unchanged.
 
 The [`backend`](backend/README.md) contains the modular-monolith host and domain-aware module CRUDs. The [`client`](client/README.md) is a responsive React + TypeScript workbench for learning, reflection, evidence, and revisioned experience.

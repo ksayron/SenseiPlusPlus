@@ -29,7 +29,8 @@ import {
   UserRound,
   X,
 } from 'lucide-react'
-import { api, getOwnerId } from './api'
+import { api } from './api'
+import { useAccount } from './auth/AccountContext'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from './components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog'
@@ -77,6 +78,7 @@ const shortDate = (value: string) => new Intl.DateTimeFormat('en', { month: 'sho
 const currentRevision = (entry: ExperienceEntry) => entry.revisions.at(-1)!
 
 function App() {
+  const account = useAccount()
   const location = useLocation()
   const navigate = useNavigate()
   const segment = location.pathname.split('/')[1]
@@ -246,9 +248,10 @@ function App() {
               {appearance === 'coastal' ? <Moon size={17} /> : <Sun size={17} />}
               {appearance === 'coastal' ? 'Night' : 'Day'}
             </Button>
-            <span className="avatar" title={`Development owner: ${getOwnerId()}`} aria-label="Development user">
+            <span className="avatar" title={account.email} aria-label={`Signed in as ${account.displayName}`}>
               <UserRound size={18} />
             </span>
+            <Link className="library-link" to="/sign-out">Sign out</Link>
           </div>
         </header>
 

@@ -84,9 +84,12 @@ The API exposes `/health` plus these initial CRUD roots:
 - `/api/v1/evidence/observations`
 - `/api/v1/experience/entries`
 
-Owner-scoped endpoints currently require an `X-Owner-Id` header. This is only a development
-boundary used to exercise owner isolation; it is not authentication. A real authenticated
-owner context must replace it before any non-local use.
+Module endpoints require a signed-in account using the HttpOnly `sensei.session` cookie.
+Ownership comes from the authenticated principal; `X-Owner-Id` cannot select an account.
+Fetch `/api/v1/auth/csrf` and send its token as `X-CSRF-Token` on every API mutation.
+Local registration, sign-in, and existing-profile recovery are documented in
+[local authentication](../docs/16-local-authentication.md). Apply the additive
+`LocalAuthentication` migration before running this version; existing data is preserved.
 
 Updates require a strong `If-Match` header using the resource's ETag. Resources also expose
 an opaque `versionToken`. Missing preconditions return `428`, malformed tokens `400`, and

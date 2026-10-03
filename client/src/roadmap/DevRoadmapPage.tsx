@@ -88,7 +88,7 @@ export default function DevRoadmapPage() {
           <div><span className="rd-stat-number">{String(delivered).padStart(2, '0')}<small> / {String(milestones.length).padStart(2, '0')}</small></span><span>tracked checkpoints delivered</span></div>
           <div><span className="rd-stat-number">06</span><span>exercise formats in Phase 1</span></div>
           <div><span className="rd-stat-number">{String(devLogs.length).padStart(2, '0')}</span><span>notes from the build</span></div>
-          <div className="rd-snapshot-note"><GitBranch size={19} /><span>Repository snapshot<br /><strong>02 October 2026</strong></span></div>
+          <div className="rd-snapshot-note"><GitBranch size={19} /><span>Repository snapshot<br /><strong>03 October 2026</strong></span></div>
         </div>
         <section className="rd-journey" id="journey">
           <div className="rd-section-heading"><div><p className="rd-kicker">01 / THE JOURNEY</p><h2>A little further, every build.</h2></div><p>Pick a checkpoint to see what changed.<br />Dates record delivery, not promises.</p></div>

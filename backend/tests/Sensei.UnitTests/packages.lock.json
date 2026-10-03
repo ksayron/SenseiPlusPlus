@@ -94,6 +94,12 @@
         }
       },
       "sensei.buildingblocks.api": {
+        "type": "Project",
+        "dependencies": {
+          "Sensei.BuildingBlocks.Application": "[1.0.0, )"
+        }
+      },
+      "sensei.buildingblocks.application": {
         "type": "Project"
       },
       "sensei.modules.evidence.domain": {

@@ -1,3 +1,4 @@
+using Sensei.Host.Authentication;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -51,9 +52,8 @@ builder.Services.AddOpenApi("v1", options =>
         var knowledge = path.StartsWith("api/v1/evidence/knowledge", StringComparison.Ordinal);
         if (!learning && !knowledge) return Task.CompletedTask;
         operation.Responses ??= new OpenApiResponses();
-        var publicContent = path.StartsWith("api/v1/learning/topics", StringComparison.Ordinal) || path.StartsWith("api/v1/learning/materials/", StringComparison.Ordinal) || path == "api/v1/learning/roadmaps" || path == "api/v1/learning/concept-relations";
         operation.Parameters ??= new List<IOpenApiParameter>();
-        if (!publicContent) operation.Parameters.Add(new OpenApiParameter { Name = "X-Owner-Id", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" } });
+
         var mutation = context.Description.HttpMethod is "PUT" or "DELETE" || context.Description.HttpMethod == "POST" && path.Contains("/sessions/", StringComparison.Ordinal);
         if (mutation) operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
         foreach (var status in mutation ? new[] { "400", "404", "409", "412", "428" } : new[] { "400", "404", "409" })
@@ -80,21 +80,40 @@ builder.Services.AddOpenApi("v1", options =>
 {
     document.Info.Title = "Sensei++ API";
     document.Info.Version = "v1";
-    document.Info.Description = "Versioned API. Owner-scoped operations require X-Owner-Id during development; " +
-        "this header selects an owner and is not authentication. Production authentication is not implemented yet. " +
+    document.Info.Description = "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. " +
+        "Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. " +
         "Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match " +
         "header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, " +
         "and stale tokens return 412. Creates do not require If-Match and return the initial ETag. " +
         "Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor " +
         "with the same owner and filters. Errors use application/problem+json with code and traceId.";
 
+    document.Components ??= new OpenApiComponents();
+    document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+    document.Components.SecuritySchemes["SessionCookie"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.ApiKey, In = ParameterLocation.Cookie, Name = "sensei.session" };
+    foreach (var path in document.Paths)
+    foreach (var entry in path.Value.Operations ?? [])
+    {
+        var op = entry.Value;
+        var anonymous = path.Key is "/" or "/health" or "/api/v1/auth/csrf" or "/api/v1/auth/login" or "/api/v1/auth/register";
+        if (!anonymous)
+        {
+            op.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("SessionCookie", document)] = [] }];
+            op.Responses ??= new OpenApiResponses();
+            op.Responses.TryAdd("401", new OpenApiResponse { Description = "Sign in required" });
+        }
+        if (entry.Key != HttpMethod.Get && path.Key.StartsWith("/api/", StringComparison.Ordinal))
+        {
+            op.Parameters ??= new List<IOpenApiParameter>();
+            op.Parameters.Add(new OpenApiParameter { Name = "X-CSRF-Token", In = ParameterLocation.Header, Required = true, Description = "Request token from /api/v1/auth/csrf for the current sign-in state.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
+        }
+    }
     foreach (var operation in document.Paths.Values.SelectMany(path => (path.Operations ?? []).Values))
     {
         foreach (var parameter in (operation.Parameters ?? []).OfType<OpenApiParameter>())
         {
             parameter.Description = parameter.Name switch
             {
-                "X-Owner-Id" => "Required development owner selector (UUID). This is not authentication.",
                 "If-Match" => "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
                 "cursor" => "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
                 "limit" => "Page size from 1 to 100; defaults to 25.",
@@ -147,6 +166,9 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<SenseiDbContext>("postgresql", tags: ["ready"]);
 
 builder.Services.AddScoped<ILearningKnowledge, LearningKnowledgeAdapter>();
+builder.Services.AddScoped<Sensei.Modules.Evidence.Application.IEvidenceSourceAccess, EvidenceSourceAccess>();
+
+builder.Services.AddSenseiAuthentication(builder.Environment, builder.Configuration);
 
 var app = builder.Build();
 
@@ -216,6 +238,12 @@ app.MapGet("/health", async (HealthCheckService healthChecks) =>
 .Produces<HealthResponse>(StatusCodes.Status503ServiceUnavailable);
 app.MapOpenApi("/openapi/{documentName}.json");
 
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
+app.Use(AuthenticationSetup.ValidateCsrf);
+app.MapSenseiAuthentication();
+
 app.MapIdentityEndpoints();
 app.MapLearningEndpoints();
 app.MapLearningRuntime();
@@ -226,6 +254,12 @@ app.MapExperienceEndpoints();
 if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Database:SeedDevelopmentOwner"))
 {
     await DevelopmentDataSeeder.SeedAsync(app.Services);
+}
+
+if (args.Contains("--recover-local-account", StringComparer.Ordinal))
+{
+    await LocalAccountRecovery.RunAsync(app);
+    return;
 }
 
 app.Run();

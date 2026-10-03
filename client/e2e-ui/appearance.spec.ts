@@ -27,6 +27,8 @@ async function fixtures(page: Page) {
     if (path === '/api/v1/learning/material-views') return route.fulfill({ status: 204 })
     if (route.request().method() !== 'GET') return route.fulfill({ status: 503, json: { detail: 'Could not save. Please retry.' } })
     const single: Record<string, unknown> = {
+      '/api/v1/auth/me': { id: 'appearance-owner', email: 'appearance@example.test', displayName: 'Appearance test' },
+      '/api/v1/auth/csrf': { token: 'appearance-csrf' },
       '/api/v1/learning/topics/concept-1': topic,
       '/api/v1/evidence/knowledge/concept-1': { familyCount: 0, assistedCount: 0 },
       '/api/v1/learning/materials/material-1': { id: 'material-1', locale: 'en', blocks: [
@@ -60,7 +62,7 @@ test('all workspace routes reflow in both appearances', async ({ page }, info) =
       await expect(page.locator('html')).toHaveAttribute('data-theme', appearance)
       await expect(page.getByRole('navigation', { name: 'Main navigation' }).locator('[aria-current=page]')).toHaveCount(1)
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-      await page.screenshot({ path: `../docs/ui/spa-screenshots/${info.project.name}-${appearance}-${route.slice(1) || 'today'}.png`, fullPage: true })
+      await page.screenshot({ path: `${process.env.SPA_SCREENSHOT_DIR ?? '../docs/ui/spa-screenshots'}/${info.project.name}-${appearance}-${route.slice(1) || 'today'}.png`, fullPage: true })
     }
   }
   expect(errors).toEqual([])
@@ -112,7 +114,7 @@ test('topic tabs support keyboard, URLs and technical content in both themes', a
   for (const appearance of ['coastal', 'coastal-night']) {
     if (appearance === 'coastal-night') await page.getByRole('button', { name: 'Night appearance' }).click()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.screenshot({ path: `../docs/ui/spa-screenshots/${info.project.name}-${appearance}-material.png`, fullPage: true })
+    await page.screenshot({ path: `${process.env.SPA_SCREENSHOT_DIR ?? '../docs/ui/spa-screenshots'}/${info.project.name}-${appearance}-material.png`, fullPage: true })
   }
   await page.reload()
   await expect(page.getByRole('tab', { name: 'material', exact: true })).toHaveAttribute('aria-selected', 'true')
