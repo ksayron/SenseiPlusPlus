@@ -4,6 +4,10 @@
 
 ## Facts, claims and interpretations
 
+Local #19 implementation now provides selected-source snapshots, disclosure previews, separate
+interpretation revisions and owner context confirmations. See [the implementation record](18-work-context-snapshots.md)
+for exact boundaries; reflection sessions, feedback bundles and full acknowledgement remain later work.
+
 A fact that an answer was submitted is durable; the truth of that answer is not established by storing it. Likewise, approval establishes that the user confirmed an account, not that employment or impact was externally verified. Model output is an attributed interpretation. Profile indicators are derived views over those records.
 
 Offline learning adds device-local durable facts before the backend receives them. `LearningPackVersion`, `DeviceRegistration`, `ClientOperation`, `SyncReceipt`, `ChangeCursor` and deletion tombstones support the protocol in [offline clients](08-offline-clients-and-expansion.md). Store device-recorded time separately from server receipt time and `self_reviewed`/`deterministic_check` separately from model assessment. The backend still authorizes all synchronized writes; local persistence is not server acknowledgement or approval.

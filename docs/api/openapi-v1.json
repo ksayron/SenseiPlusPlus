@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Sensei++ API",
-    "description": "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Creates do not require If-Match and return the initial ETag. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
+    "description": "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Independent creates return the initial ETag; context commands require the parent episode's If-Match, including snapshot creation. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
     "version": "v1"
   },
   "paths": {
@@ -4806,6 +4806,868 @@
         ]
       }
     },
+    "/api/v1/work/episodes/{episode}/context": {
+      "get": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "GetContextWorkspace",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Strong ETag to send in If-Match for a later mutation.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextWorkspaceResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/preview": {
+      "post": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "PreviewContextDisclosure",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/snapshots": {
+      "get": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "ListContextSnapshots",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size from 1 to 100; defaults to 25.",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageEnvelopeOfSnapshotResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "SaveContextSnapshot",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "headers": {
+              "ETag": {
+                "description": "Strong ETag to send in If-Match for a later mutation.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextMutationResourceOfSnapshotResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/snapshots/{snapshot}": {
+      "get": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "GetContextSnapshot",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotResource"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/snapshots/{snapshot}/interpretations": {
+      "get": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "ListContextInterpretations",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size from 1 to 100; defaults to 25.",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageEnvelopeOfInterpretationResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "ReviseContextInterpretation",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviseInterpretationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Strong ETag to send in If-Match for a later mutation.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextMutationResourceOfInterpretationResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/snapshots/{snapshot}/confirmations": {
+      "get": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "ListContextConfirmations",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size from 1 to 100; defaults to 25.",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageEnvelopeOfConfirmationResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/work/episodes/{episode}/context/snapshots/{snapshot}/confirmation": {
+      "post": {
+        "tags": [
+          "Work Context"
+        ],
+        "operationId": "ConfirmContextInterpretation",
+        "parameters": [
+          {
+            "name": "episode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "snapshot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmContextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Strong ETag to send in If-Match for a later mutation.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextMutationResourceOfConfirmationResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Precondition Failed",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Precondition Required",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/evidence/observations": {
       "post": {
         "tags": [
@@ -5942,6 +6804,59 @@
           }
         }
       },
+      "ConfirmationResource": {
+        "required": [
+          "id",
+          "snapshotId",
+          "interpretationId",
+          "sourceFingerprint",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "snapshotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "interpretationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceFingerprint": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ConfirmContextRequest": {
+        "required": [
+          "operationId",
+          "interpretationId",
+          "sourceFingerprint"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "interpretationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceFingerprint": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "ContentBlock": {
         "required": [
           "kind"
@@ -5973,6 +6888,209 @@
               "type": "string"
             },
             "nullable": true
+          }
+        }
+      },
+      "ContextDataScope": {
+        "enum": [
+          "Restricted",
+          "PublicSynthetic"
+        ]
+      },
+      "ContextMutationResourceOfConfirmationResource": {
+        "required": [
+          "item",
+          "currentSnapshotId",
+          "acceptedInterpretationId",
+          "versionToken"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/ConfirmationResource"
+              }
+            ]
+          },
+          "currentSnapshotId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "acceptedInterpretationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "versionToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextMutationResourceOfInterpretationResource": {
+        "required": [
+          "item",
+          "currentSnapshotId",
+          "acceptedInterpretationId",
+          "versionToken"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/InterpretationResource"
+              }
+            ]
+          },
+          "currentSnapshotId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "acceptedInterpretationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "versionToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextMutationResourceOfSnapshotResource": {
+        "required": [
+          "item",
+          "currentSnapshotId",
+          "acceptedInterpretationId",
+          "versionToken"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/SnapshotResource"
+              }
+            ]
+          },
+          "currentSnapshotId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "acceptedInterpretationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "versionToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextPreview": {
+        "required": [
+          "sourceFingerprint",
+          "fingerprintVersion",
+          "manifest",
+          "previewToken"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceFingerprint": {
+            "type": "string"
+          },
+          "fingerprintVersion": {
+            "type": "string"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/DisclosureManifest"
+          },
+          "previewToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextSource": {
+        "required": [
+          "kind",
+          "excerpts",
+          "intent",
+          "constraints"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ContextSourceKind"
+          },
+          "excerpts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SelectedExcerpt"
+            }
+          },
+          "intent": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "string"
+          }
+        }
+      },
+      "ContextSourceKind": {
+        "enum": [
+          "ManualWeb"
+        ]
+      },
+      "ContextWorkspaceResource": {
+        "required": [
+          "episodeId",
+          "currentSnapshotId",
+          "acceptedInterpretationId",
+          "isArchived",
+          "versionToken"
+        ],
+        "type": "object",
+        "properties": {
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currentSnapshotId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "acceptedInterpretationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "versionToken": {
+            "type": "string"
           }
         }
       },
@@ -6092,6 +7210,92 @@
           },
           "summary": {
             "type": "string"
+          }
+        }
+      },
+      "DisclosureManifest": {
+        "required": [
+          "schemaVersion",
+          "mode",
+          "dataScope",
+          "sourceFingerprint",
+          "selectedContent",
+          "recipients",
+          "route",
+          "notice"
+        ],
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "dataScope": {
+            "$ref": "#/components/schemas/ContextDataScope"
+          },
+          "sourceFingerprint": {
+            "type": "string"
+          },
+          "selectedContent": {
+            "$ref": "#/components/schemas/ContextSource"
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DisclosureRecipient"
+            }
+          },
+          "route": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/ModelRoute"
+              }
+            ]
+          },
+          "notice": {
+            "type": "string"
+          }
+        }
+      },
+      "DisclosureRecipient": {
+        "required": [
+          "kind",
+          "name",
+          "policyUrl",
+          "policyCheckedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "policyUrl": {
+            "type": "string"
+          },
+          "policyCheckedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -6691,6 +7895,90 @@
           }
         }
       },
+      "InterpretationOrigin": {
+        "enum": [
+          "User",
+          "Fixture",
+          "Provider"
+        ]
+      },
+      "InterpretationResource": {
+        "required": [
+          "id",
+          "snapshotId",
+          "number",
+          "supersedesId",
+          "origin",
+          "text",
+          "provenanceJson",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "snapshotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "supersedesId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "origin": {
+            "$ref": "#/components/schemas/InterpretationOrigin"
+          },
+          "text": {
+            "$ref": "#/components/schemas/InterpretationText"
+          },
+          "provenanceJson": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InterpretationText": {
+        "required": [
+          "intent",
+          "constraints",
+          "missingInformation",
+          "correction"
+        ],
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "string"
+          },
+          "missingInformation": {
+            "type": "string"
+          },
+          "correction": {
+            "type": "string"
+          }
+        }
+      },
       "ItemCommand": {
         "required": [
           "operationId"
@@ -7127,6 +8415,92 @@
           }
         }
       },
+      "ModelOutputMode": {
+        "enum": [
+          "StrictJsonSchema",
+          "ValidatedJson"
+        ]
+      },
+      "ModelRoute": {
+        "required": [
+          "revision",
+          "modelId",
+          "endpointTag",
+          "providerName",
+          "outputMode",
+          "privacyPolicy",
+          "privacyReviewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "string"
+          },
+          "modelId": {
+            "type": "string"
+          },
+          "endpointTag": {
+            "type": "string"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "outputMode": {
+            "$ref": "#/components/schemas/ModelOutputMode"
+          },
+          "privacyPolicy": {
+            "type": "string",
+            "format": "uri"
+          },
+          "privacyReviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "maxInputBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32",
+            "default": 8000
+          },
+          "maxOutputTokens": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32",
+            "default": 1500
+          },
+          "timeoutSeconds": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32",
+            "default": 45
+          },
+          "digest": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "MutationResource": {
         "required": [
           "outcomeId",
@@ -7174,6 +8548,25 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConceptResource"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PageEnvelopeOfConfirmationResource": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConfirmationResource"
             }
           },
           "nextCursor": {
@@ -7258,6 +8651,25 @@
           }
         }
       },
+      "PageEnvelopeOfInterpretationResource": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InterpretationResource"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "PageEnvelopeOfKnowledgeResource": {
         "required": [
           "items",
@@ -7326,6 +8738,25 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SessionResource"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PageEnvelopeOfSnapshotResource": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SnapshotResource"
             }
           },
           "nextCursor": {
@@ -7446,6 +8877,25 @@
           }
         }
       },
+      "PreviewContextRequest": {
+        "required": [
+          "source"
+        ],
+        "type": "object",
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/ContextSource"
+          },
+          "dataScope": {
+            "$ref": "#/components/schemas/ContextDataScope"
+          },
+          "routeRevision": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -7563,6 +9013,28 @@
             "$ref": "#/components/schemas/RelationKind"
           }
         }
+      },
+      "ReviseInterpretationRequest": {
+        "required": [
+          "operationId",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "text": {
+            "$ref": "#/components/schemas/InterpretationText"
+          },
+          "supersedesId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "RevisionApprovalState": {
         "enum": [
@@ -7689,6 +9161,53 @@
           },
           "available": {
             "type": "boolean"
+          }
+        }
+      },
+      "SaveContextRequest": {
+        "required": [
+          "operationId",
+          "source",
+          "previewToken"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ContextSource"
+          },
+          "previewToken": {
+            "type": "string"
+          },
+          "dataScope": {
+            "$ref": "#/components/schemas/ContextDataScope"
+          },
+          "routeRevision": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SelectedExcerpt": {
+        "required": [
+          "label",
+          "versionLabel",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "versionLabel": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
           }
         }
       },
@@ -7826,6 +9345,65 @@
           "Completed",
           "EndedEarly"
         ]
+      },
+      "SnapshotResource": {
+        "required": [
+          "id",
+          "episodeId",
+          "number",
+          "source",
+          "sourceFingerprint",
+          "fingerprintVersion",
+          "dataScope",
+          "disclosure",
+          "disclosureDigest",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "episodeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ContextSource"
+          },
+          "sourceFingerprint": {
+            "type": "string"
+          },
+          "fingerprintVersion": {
+            "type": "string"
+          },
+          "dataScope": {
+            "$ref": "#/components/schemas/ContextDataScope"
+          },
+          "disclosure": {
+            "$ref": "#/components/schemas/DisclosureManifest"
+          },
+          "disclosureDigest": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "StageResource": {
         "required": [
@@ -8148,6 +9726,9 @@
     },
     {
       "name": "Work Reflection"
+    },
+    {
+      "name": "Work Context"
     },
     {
       "name": "Experience and Presentation"

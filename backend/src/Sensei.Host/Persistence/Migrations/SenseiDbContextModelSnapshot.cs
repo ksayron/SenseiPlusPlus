@@ -1454,7 +1454,7 @@ namespace Sensei.Host.Persistence.Migrations
                     b.ToTable("stage_traversals", "learning");
                 });
 
-            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.WorkEpisode", b =>
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.ContextConfirmation", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -1463,6 +1463,230 @@ namespace Sensei.Host.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<Guid>("EpisodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("episode_id");
+
+                    b.Property<Guid>("InterpretationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("interpretation_id");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_digest");
+
+                    b.Property<Guid>("SnapshotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("snapshot_id");
+
+                    b.Property<string>("SourceFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_fingerprint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "EpisodeId", "OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "EpisodeId", "SnapshotId", "InterpretationId");
+
+                    b.ToTable("context_confirmations", "work_reflection", t =>
+                        {
+                            t.HasCheckConstraint("ck_confirmation_operation", "operation_id <> '00000000-0000-0000-0000-000000000000'::uuid");
+                        });
+                });
+
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.ContextSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DataScope")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("data_scope");
+
+                    b.Property<string>("DisclosureDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("disclosure_digest");
+
+                    b.Property<string>("DisclosureJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("disclosure_json");
+
+                    b.Property<Guid>("EpisodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("episode_id");
+
+                    b.Property<string>("FingerprintVersion")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("fingerprint_version");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_digest");
+
+                    b.Property<string>("SourceFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("source_fingerprint");
+
+                    b.Property<string>("SourceJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("source_json");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "EpisodeId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "EpisodeId", "OperationId")
+                        .IsUnique();
+
+                    b.ToTable("context_snapshots", "work_reflection", t =>
+                        {
+                            t.HasCheckConstraint("ck_context_number", "number > 0");
+
+                            t.HasCheckConstraint("ck_context_operation", "operation_id <> '00000000-0000-0000-0000-000000000000'::uuid");
+
+                            t.HasCheckConstraint("ck_context_scope", "data_scope IN ('Restricted','PublicSynthetic')");
+                        });
+                });
+
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.InterpretationRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EpisodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("episode_id");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("ProvenanceJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("provenance_json");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_digest");
+
+                    b.Property<Guid>("SnapshotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("snapshot_id");
+
+                    b.Property<Guid?>("SupersedesId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("supersedes_id");
+
+                    b.Property<string>("TextJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("text_json");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "EpisodeId", "OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "EpisodeId", "SnapshotId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "EpisodeId", "SnapshotId", "SupersedesId");
+
+                    b.ToTable("interpretation_revisions", "work_reflection", t =>
+                        {
+                            t.HasCheckConstraint("ck_interpretation_number", "number > 0");
+
+                            t.HasCheckConstraint("ck_interpretation_operation", "operation_id <> '00000000-0000-0000-0000-000000000000'::uuid");
+
+                            t.HasCheckConstraint("ck_interpretation_origin", "origin IN ('User','Fixture','Provider') AND (origin = 'User' OR provenance_json IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.WorkEpisode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcceptedInterpretationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("accepted_interpretation_id");
+
+                    b.Property<int>("ContextNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("context_number");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CurrentSnapshotId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_snapshot_id");
 
                     b.Property<DateOnly>("EventDate")
                         .HasColumnType("date")
@@ -1517,6 +1741,8 @@ namespace Sensei.Host.Persistence.Migrations
 
                     b.HasIndex("OwnerId", "EventDate", "Id")
                         .HasDatabaseName("ix_work_episodes_owner_event_id");
+
+                    b.HasIndex("OwnerId", "Id", "CurrentSnapshotId", "AcceptedInterpretationId");
 
                     b.ToTable("work_episodes", "work_reflection", t =>
                         {
@@ -1957,6 +2183,42 @@ namespace Sensei.Host.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.ContextConfirmation", b =>
+                {
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.InterpretationRevision", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EpisodeId", "SnapshotId", "InterpretationId")
+                        .HasPrincipalKey("OwnerId", "EpisodeId", "SnapshotId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.ContextSnapshot", b =>
+                {
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.WorkEpisode", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EpisodeId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.InterpretationRevision", b =>
+                {
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.ContextSnapshot", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EpisodeId", "SnapshotId")
+                        .HasPrincipalKey("OwnerId", "EpisodeId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.InterpretationRevision", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EpisodeId", "SnapshotId", "SupersedesId")
+                        .HasPrincipalKey("OwnerId", "EpisodeId", "SnapshotId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("Sensei.Modules.WorkReflection.Domain.WorkEpisode", b =>
                 {
                     b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
@@ -1965,6 +2227,18 @@ namespace Sensei.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_work_episodes_owner");
+
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.ContextSnapshot", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "Id", "CurrentSnapshotId")
+                        .HasPrincipalKey("OwnerId", "EpisodeId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Sensei.Modules.WorkReflection.Domain.InterpretationRevision", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "Id", "CurrentSnapshotId", "AcceptedInterpretationId")
+                        .HasPrincipalKey("OwnerId", "EpisodeId", "SnapshotId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Sensei.Modules.Experience.Domain.ExperienceEntry", b =>

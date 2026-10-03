@@ -111,8 +111,13 @@ jobs:
         working-directory: client
       - run: npm run test:e2e
         working-directory: client
+      - run: npm run test:context -- --workers=1
+        working-directory: client
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: learning-browser-evidence
-          path: client/test-results
+          include-hidden-files: true
+          path: |
+            client/test-results
+            .tmp/context-browser

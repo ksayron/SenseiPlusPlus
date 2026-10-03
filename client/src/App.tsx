@@ -36,6 +36,7 @@ import { Button } from './components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog'
 import { loadAppearance, setAppearance } from './theme/appearance'
 import { LearningPage } from './learning/LearningPage'
+import { ContextWorkbench } from './reflection/ContextWorkbench'
 import type {
   Assistance,
   Concept,
@@ -283,10 +284,10 @@ function App() {
             />
           )}
           {view === 'learn' && <><LearningPage /><details className="learning-library"><summary>Manage concept library</summary><LearnPage concepts={concepts} loading={loading} onEdit={(item) => openModal({ kind: 'concept', item })} onDeactivate={(item) => void mutate(() => api.concepts.deactivate(item), 'Concept moved out of active study.')} /></details></>}
-          {view === 'reflect' && <ReflectPage episodes={episodes} loading={loading} onEdit={(item) => openModal({ kind: 'episode', item })} onArchive={(item) => void mutate(() => api.episodes.archive(item), 'Reflection archived.')} />}
+          {view === 'reflect' && (location.pathname.split('/')[2] ? <ContextWorkbench key={location.pathname.split('/')[2]} episodeId={location.pathname.split('/')[2]} /> : <ReflectPage episodes={episodes} loading={loading} onEdit={(item) => openModal({ kind: 'episode', item })} onArchive={(item) => void mutate(() => api.episodes.archive(item), 'Reflection archived.')} />)}
           {view === 'evidence' && <EvidencePage evidence={evidence} concepts={concepts} loading={loading} onStatus={(item, status) => void mutate(() => api.evidence.status(item, status), `Signal marked ${pretty(status).toLowerCase()}.`)} onWithdraw={(item) => void mutate(() => api.evidence.withdraw(item), 'Evidence signal withdrawn.')} />}
           {view === 'experience' && <ExperiencePage entries={experience} concepts={concepts} loading={loading} onEdit={(item) => openModal({ kind: 'experience', item })} onApprove={(item) => void mutate(() => api.experience.approve(item, currentRevision(item).number), 'Revision approved and preserved.')} onArchive={(item) => void mutate(() => api.experience.archive(item), 'Experience entry archived.')} />}
-          {view !== 'today' && nextCursor[view] && <Button className="primary-button" onClick={() => void loadMore()} disabled={loading}>Load more</Button>}
+          {view !== 'today' && !(view === 'reflect' && location.pathname.split('/')[2]) && nextCursor[view] && <Button className="primary-button" onClick={() => void loadMore()} disabled={loading}>Load more</Button>}
         </div>
       </main>
 
@@ -430,7 +431,7 @@ function ReflectPage({ episodes, loading, onEdit, onArchive }: { episodes: WorkE
           {[...episodes].sort((a, b) => b.eventDate.localeCompare(a.eventDate)).map((episode) => (
             <article className={`timeline-item ${episode.isArchived ? 'is-muted' : ''}`} key={episode.id}>
               <div className="timeline-marker" /><time>{shortDate(episode.eventDate)}</time>
-              <div className="timeline-card"><div className="timeline-meta"><span>{pretty(episode.setting)}</span><span>{episode.role}</span></div><h2>{episode.title}</h2><p>{episode.summary}</p><footer><span>{episode.isArchived ? 'Archived' : 'Ready to explore'}</span><div><Button variant="ghost" className="text-button" onClick={() => onEdit(episode)}><Pencil size={15} /> Edit</Button>{!episode.isArchived && <Button variant="ghost" className="text-button" onClick={() => onArchive(episode)}><Archive size={15} /> Archive</Button>}</div></footer></div>
+              <div className="timeline-card"><div className="timeline-meta"><span>{pretty(episode.setting)}</span><span>{episode.role}</span></div><h2>{episode.title}</h2><p>{episode.summary}</p><footer><span>{episode.isArchived ? 'Archived' : 'Ready to explore'}</span><div><Link className="library-link" to={`/reflect/${episode.id}`}>Review context</Link><Button variant="ghost" className="text-button" onClick={() => onEdit(episode)}><Pencil size={15} /> Edit</Button>{!episode.isArchived && <Button variant="ghost" className="text-button" onClick={() => onArchive(episode)}><Archive size={15} /> Archive</Button>}</div></footer></div>
             </article>
           ))}
         </div>

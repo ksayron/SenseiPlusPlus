@@ -84,7 +84,7 @@ builder.Services.AddOpenApi("v1", options =>
         "Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. " +
         "Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match " +
         "header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, " +
-        "and stale tokens return 412. Creates do not require If-Match and return the initial ETag. " +
+        "and stale tokens return 412. Independent creates return the initial ETag; context commands require the parent episode's If-Match, including snapshot creation. " +
         "Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor " +
         "with the same owner and filters. Errors use application/problem+json with code and traceId.";
 
@@ -125,6 +125,7 @@ builder.Services.AddOpenApi("v1", options =>
         if (operation.OperationId is "CreateUser" or "GetUser" or "UpdateUser" or
             "CreateConcept" or "GetConcept" or "UpdateConcept" or
             "CreateWorkEpisode" or "GetWorkEpisode" or "UpdateWorkEpisode" or
+            "GetContextWorkspace" or "SaveContextSnapshot" or "ReviseContextInterpretation" or "ConfirmContextInterpretation" or
             "CreateEvidenceObservation" or "GetEvidenceObservation" or "ChangeEvidenceStatus" or
             "CreateExperienceEntry" or "GetExperienceEntry" or "ReviseExperienceEntry" or "ApproveExperienceRevision")
         {
@@ -248,6 +249,7 @@ app.MapIdentityEndpoints();
 app.MapLearningEndpoints();
 app.MapLearningRuntime();
 app.MapWorkReflectionEndpoints();
+app.MapContextEndpoints();
 app.MapEvidenceEndpoints();
 app.MapExperienceEndpoints();
 

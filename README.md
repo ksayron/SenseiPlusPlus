@@ -1,5 +1,8 @@
 # Sensei++
 
+Work context now supports immutable selected-source snapshots and separate, explicitly confirmed
+interpretations. See [the implementation and verification record](docs/18-work-context-snapshots.md).
+
 Sensei++ helps developers turn learning and engineering work into retained understanding, visible growth, and credible accounts of their experience.
 
 This workspace contains the architecture proposal, modular .NET backend, and a React web client.

@@ -23,6 +23,23 @@ public sealed class WorkEpisode
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public int Version { get; private set; }
+    public int ContextNumber { get; private set; }
+    public Guid? CurrentSnapshotId { get; private set; }
+    public Guid? AcceptedInterpretationId { get; private set; }
+
+    public int SelectSnapshot(Guid snapshotId, DateTimeOffset now)
+    {
+        if (IsArchived || snapshotId == Guid.Empty) throw new InvalidOperationException("Archived episodes cannot receive context.");
+        ContextNumber++; CurrentSnapshotId = snapshotId; AcceptedInterpretationId = null;
+        UpdatedAt = now; Version++;
+        return ContextNumber;
+    }
+
+    public void ChangeInterpretation(Guid snapshotId, Guid? acceptedId, DateTimeOffset now)
+    {
+        if (IsArchived || CurrentSnapshotId != snapshotId) throw new InvalidOperationException("The source snapshot is no longer current.");
+        AcceptedInterpretationId = acceptedId; UpdatedAt = now; Version++;
+    }
 
     public static WorkEpisode Create(
         Guid ownerId,

@@ -11,6 +11,9 @@ public static class WorkReflectionInfrastructure
 {
     public static IServiceCollection AddWorkReflectionModule(this IServiceCollection services) => services
         .AddScoped<IWorkEpisodeRepository, EfWorkEpisodeRepository>()
+        .AddScoped<IContextRepository, EfContextRepository>()
+        .AddSingleton<IContextDisclosurePolicy>(new ContextDisclosurePolicy())
+        .AddScoped<ContextService>()
         .AddScoped<IWorkEpisodeService, WorkEpisodeService>();
 }
 
@@ -58,6 +61,13 @@ internal sealed class WorkEpisodeConfiguration : IEntityTypeConfiguration<WorkEp
         builder.Property(episode => episode.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone");
         builder.Property(episode => episode.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp with time zone");
         builder.Property(episode => episode.Version).HasColumnName("version").IsConcurrencyToken();
+        builder.Property(episode => episode.ContextNumber).HasColumnName("context_number");
+        builder.Property(episode => episode.CurrentSnapshotId).HasColumnName("current_snapshot_id");
+        builder.Property(episode => episode.AcceptedInterpretationId).HasColumnName("accepted_interpretation_id");
+        builder.HasOne<ContextSnapshot>().WithMany().HasForeignKey(x => new { x.OwnerId, x.Id, x.CurrentSnapshotId })
+            .HasPrincipalKey(x => new { x.OwnerId, x.EpisodeId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InterpretationRevision>().WithMany().HasForeignKey(x => new { x.OwnerId, x.Id, x.CurrentSnapshotId, x.AcceptedInterpretationId })
+            .HasPrincipalKey(x => new { x.OwnerId, x.EpisodeId, x.SnapshotId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(episode => new { episode.OwnerId, episode.Id }).IsUnique().HasDatabaseName("ux_work_episodes_owner_id");
         builder.HasIndex(episode => new { episode.OwnerId, episode.EventDate, episode.Id }).HasDatabaseName("ix_work_episodes_owner_event_id");
     }
