@@ -41,7 +41,9 @@ Migrations are explicit; startup never silently migrates. `LearningFoundation` a
 
 ## Verification record
 
-Verified locally against PostgreSQL 18 and the existing .NET 9 target:
+Verified locally against PostgreSQL 18 and the then-current .NET 9 target.
+The current .NET 10 / Node 24 baseline and its separate verification are recorded in
+[the toolchain upgrade](15-toolchain-upgrade.md); the following counts describe the original delivery:
 
 | Check | Result |
 | --- | --- |

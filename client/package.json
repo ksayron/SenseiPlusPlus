@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "24.x",
+    "npm": "11.19.x"
+  },
+  "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -37,7 +42,6 @@
     "eslint-plugin-react-hooks": "6.1.1",
     "eslint-plugin-react-refresh": "0.4.26",
     "globals": "16.5.0",
-    "shadcn": "^4.21.0",
     "tailwindcss": "^4.3.3",
     "typescript": "5.9.3",
     "typescript-eslint": "8.70.0",

@@ -19,6 +19,16 @@ The owner header matches the current backend boundary; it is not authentication 
 
 ## Run locally
 
+Use Node 24.21.0 (pinned in the root `.node-version`) and npm 11.19.0.
+CI reads the same Node pin; `package.json` records the compatible engine versions
+and npm version. Install the runtime with your usual Node version manager.
+
+The shadcn-derived component sources are maintained locally and use Base UI at runtime.
+The generator CLI was removed during the toolchain upgrade because its transitive
+dependencies failed npm audit. Its exact 4.21.0 stylesheet is preserved in
+`src/theme/shadcn-tailwind.css` with the existing MIT license notice. When generating additional
+components, separately review the current CLI and its dependencies before invoking it.
+
 Start the backend from the repository root:
 
 ```powershell
@@ -29,7 +39,7 @@ Then start the client:
 
 ```powershell
 cd client
-npm install
+npm ci
 npm run dev
 ```
 

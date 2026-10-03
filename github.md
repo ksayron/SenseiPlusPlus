@@ -11,10 +11,19 @@ Use this runbook whenever Codex creates, updates, or synchronizes GitHub work fo
 - Delivery board URL: `https://github.com/users/ksayron/projects/4`
 - Default branch after repository publication: `main`
 
-The current workspace is nested below a parent Git checkout whose remote is the unrelated
-`ksayron/LitLang` repository. Until issue #3 establishes a standalone Sensei++ checkout,
-never infer the target from `git remote`. Every `gh` command must explicitly include
-`-R ksayron/SenseiPlusPlus` where the command supports it.
+The workspace is a standalone checkout of `ksayron/SenseiPlusPlus`. Every `gh` command
+must explicitly include `-R ksayron/SenseiPlusPlus` where the command supports it.
+
+### Main branch protection
+
+Verified on 3 October 2026: `main` requires a pull request, dismisses stale reviews,
+and requires the `backend` and `client` checks with an up-to-date branch. The configured
+approval count is zero and administrator enforcement is disabled. Use pull requests
+even when the account can bypass protection. The `ui-browser` and `learning-browser`
+jobs also run for every pull request and must pass before accepting delivery.
+
+Backend CI installs the SDK from `backend/global.json`; all client/browser jobs install
+Node from `.node-version`. Locked NuGet restore and `npm ci` validate committed dependencies.
 
 ## Environment and authentication
 

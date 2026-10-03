@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Sensei.BuildingBlocks.Api;
 using Sensei.BuildingBlocks.Application;
@@ -43,24 +43,26 @@ builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = 
 });
 builder.Services.AddOpenApi("v1", options =>
 {
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
     options.AddOperationTransformer((operation, context, _) =>
     {
         var path = context.Description.RelativePath ?? "";
         var learning = path.StartsWith("api/v1/learning/", StringComparison.Ordinal) && !path.StartsWith("api/v1/learning/concepts", StringComparison.Ordinal);
         var knowledge = path.StartsWith("api/v1/evidence/knowledge", StringComparison.Ordinal);
         if (!learning && !knowledge) return Task.CompletedTask;
+        operation.Responses ??= new OpenApiResponses();
         var publicContent = path.StartsWith("api/v1/learning/topics", StringComparison.Ordinal) || path.StartsWith("api/v1/learning/materials/", StringComparison.Ordinal) || path == "api/v1/learning/roadmaps" || path == "api/v1/learning/concept-relations";
-        operation.Parameters ??= new List<OpenApiParameter>();
-        if (!publicContent) operation.Parameters.Add(new OpenApiParameter { Name = "X-Owner-Id", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = "string", Format = "uuid" } });
+        operation.Parameters ??= new List<IOpenApiParameter>();
+        if (!publicContent) operation.Parameters.Add(new OpenApiParameter { Name = "X-Owner-Id", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" } });
         var mutation = context.Description.HttpMethod is "PUT" or "DELETE" || context.Description.HttpMethod == "POST" && path.Contains("/sessions/", StringComparison.Ordinal);
-        if (mutation) operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = "string" } });
+        if (mutation) operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
         foreach (var status in mutation ? new[] { "400", "404", "409", "412", "428" } : new[] { "400", "404", "409" })
-            operation.Responses.TryAdd(status, new OpenApiResponse { Description = "Problem Details with code and traceId", Content = new Dictionary<string, OpenApiMediaType> { ["application/problem+json"] = new() { Schema = new OpenApiSchema { Reference = new() { Type = ReferenceType.Schema, Id = "ProblemDetails" } } } } });
+            operation.Responses.TryAdd(status, new OpenApiResponse { Description = "Problem Details with code and traceId", Content = new Dictionary<string, OpenApiMediaType> { ["application/problem+json"] = new() { Schema = new OpenApiSchemaReference("ProblemDetails", context.Document) } } });
         if (mutation || context.Description.HttpMethod == "POST" && (path.EndsWith("/sessions") || path.EndsWith("/goals") || path.EndsWith("/roadmap-enrollments")) || operation.OperationId == "GetLearningSession")
-            foreach (var response in operation.Responses.Where(x => x.Key is "200" or "201"))
+            foreach (var response in operation.Responses.Where(x => x.Key is "200" or "201").Select(x => x.Value).OfType<OpenApiResponse>())
             {
-                response.Value.Headers ??= new Dictionary<string, OpenApiHeader>();
-                response.Value.Headers["ETag"] = new OpenApiHeader { Description = "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.", Schema = new OpenApiSchema { Type = "string" } };
+                response.Headers ??= new Dictionary<string, IOpenApiHeader>();
+                response.Headers["ETag"] = new OpenApiHeader { Description = "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
             }
         return Task.CompletedTask;
     });
@@ -68,8 +70,9 @@ builder.Services.AddOpenApi("v1", options =>
     {
         if (context.JsonTypeInfo.Type == typeof(ProblemDetails))
         {
-            schema.Properties["code"] = new OpenApiSchema { Type = "string", Description = "Stable machine-readable error code." };
-            schema.Properties["traceId"] = new OpenApiSchema { Type = "string", Description = "Request trace identifier for diagnostics." };
+            schema.Properties ??= new Dictionary<string, IOpenApiSchema>();
+            schema.Properties["code"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = "Stable machine-readable error code." };
+            schema.Properties["traceId"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = "Request trace identifier for diagnostics." };
         }
         return Task.CompletedTask;
     });
@@ -85,9 +88,9 @@ builder.Services.AddOpenApi("v1", options =>
         "Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor " +
         "with the same owner and filters. Errors use application/problem+json with code and traceId.";
 
-    foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations.Values))
+    foreach (var operation in document.Paths.Values.SelectMany(path => (path.Operations ?? []).Values))
     {
-        foreach (var parameter in operation.Parameters ?? [])
+        foreach (var parameter in (operation.Parameters ?? []).OfType<OpenApiParameter>())
         {
             parameter.Description = parameter.Name switch
             {
@@ -106,13 +109,13 @@ builder.Services.AddOpenApi("v1", options =>
             "CreateEvidenceObservation" or "GetEvidenceObservation" or "ChangeEvidenceStatus" or
             "CreateExperienceEntry" or "GetExperienceEntry" or "ReviseExperienceEntry" or "ApproveExperienceRevision")
         {
-            foreach (var response in operation.Responses.Where(pair => pair.Key is "200" or "201"))
+            foreach (var response in (operation.Responses ?? []).Where(pair => pair.Key is "200" or "201").Select(pair => pair.Value).OfType<OpenApiResponse>())
             {
-                response.Value.Headers ??= new Dictionary<string, OpenApiHeader>();
-                response.Value.Headers["ETag"] = new OpenApiHeader
+                response.Headers ??= new Dictionary<string, IOpenApiHeader>();
+                response.Headers["ETag"] = new OpenApiHeader
                 {
                     Description = "Strong ETag to send in If-Match for a later mutation.",
-                    Schema = new OpenApiSchema { Type = "string" }
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String }
                 };
             }
         }

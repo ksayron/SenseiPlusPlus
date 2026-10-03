@@ -62,12 +62,13 @@ configured default owner if it is missing. Other environments receive no demo da
 
 ## Build and run
 
-The repository design targets .NET 10. This scaffold temporarily targets .NET 9 because
-9.0.300 is the SDK currently installed on the development machine. The target is centralized
-by the backend project files and can be upgraded when the .NET 10 SDK is installed.
+The backend and its tests target .NET 10. `global.json` pins SDK 10.0.401
+(with patch roll-forward); CI reads the same file. Central package management pins
+ASP.NET Core and EF Core 10.0.12 with the Npgsql EF provider 10.0.3.
+The repository tool manifest pins `dotnet-ef` 10.0.12.
 
 ```powershell
-dotnet restore backend/Sensei.sln -m:1
+dotnet restore backend/Sensei.sln --locked-mode -m:1
 dotnet build backend/Sensei.sln --no-restore -m:1
 dotnet run --project backend/src/Sensei.Host
 ```
