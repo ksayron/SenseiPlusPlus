@@ -47,7 +47,7 @@ test('journal combines search and categories, resets empty results and opens acc
   await page.getByRole('searchbox').fill('there-is-no-such-note')
   await expect(page.getByRole('heading', { name: 'No notes on that page.' })).toBeVisible()
   await page.getByRole('button', { name: 'Reset filters' }).click()
-  await expect(page.locator('.rd-log-entry')).toHaveCount(11)
+  await expect(page.locator('.rd-log-entry')).toHaveCount(12)
   await page.getByRole('button', { name: 'Design', exact: true }).click()
   await expect(page.locator('.rd-log-entry')).toHaveCount(2)
   await page.locator('.rd-log-entry').first().locator('summary').click()

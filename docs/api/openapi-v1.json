@@ -60,7 +60,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -266,7 +274,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -604,7 +620,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -884,7 +908,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -1364,7 +1396,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -2944,7 +2984,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -3023,7 +3071,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -3397,7 +3453,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -3537,7 +3601,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -3644,7 +3716,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrollmentResource2"
+                  "$ref": "#/components/schemas/EnrollmentResource"
                 }
               }
             }
@@ -3742,7 +3814,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EnrollmentResource2"
+                  "$ref": "#/components/schemas/EnrollmentResource"
                 }
               }
             }
@@ -3887,7 +3959,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -4275,7 +4355,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -4657,7 +4745,15 @@
             "in": "query",
             "description": "Page size from 1 to 100; defaults to 25.",
             "schema": {
-              "type": "integer",
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
               "format": "int32"
             }
           },
@@ -4961,6 +5057,7 @@
             "in": "path",
             "required": true,
             "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": "integer",
               "format": "int32"
             }
@@ -5088,43 +5185,13 @@
             "additionalProperties": {
               "type": "string"
             },
-            "default": null,
             "nullable": true
           },
           "noIssue": {
             "type": "boolean",
             "default": false
           }
-        },
-        "nullable": true
-      },
-      "Answer2": {
-        "required": [
-          "selected"
-        ],
-        "type": "object",
-        "properties": {
-          "selected": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pairs": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "default": null,
-            "nullable": true
-          },
-          "noIssue": {
-            "type": "boolean",
-            "default": false
-          }
-        },
-        "default": null,
-        "nullable": true
+        }
       },
       "AssistanceLevel": {
         "enum": [
@@ -5261,17 +5328,14 @@
           },
           "language": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "url": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "alt": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "items": {
@@ -5279,7 +5343,6 @@
             "items": {
               "type": "string"
             },
-            "default": null,
             "nullable": true
           }
         }
@@ -5410,7 +5473,17 @@
         "type": "object",
         "properties": {
           "answer": {
-            "$ref": "#/components/schemas/Answer"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/Answer"
+              }
+            ]
           },
           "note": {
             "type": "string",
@@ -5431,7 +5504,17 @@
             "format": "uuid"
           },
           "answer": {
-            "$ref": "#/components/schemas/Answer"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/Answer"
+              }
+            ]
           },
           "note": {
             "type": "string"
@@ -5456,38 +5539,6 @@
         }
       },
       "EnrollmentResource": {
-        "required": [
-          "id",
-          "roadmapVersionId",
-          "paused",
-          "currentStageId",
-          "versionToken"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "roadmapVersionId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "paused": {
-            "type": "boolean"
-          },
-          "currentStageId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "versionToken": {
-            "type": "string"
-          }
-        },
-        "nullable": true
-      },
-      "EnrollmentResource2": {
         "required": [
           "id",
           "roadmapVersionId",
@@ -5744,7 +5795,15 @@
         "type": "object",
         "properties": {
           "number": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "title": {
@@ -5826,7 +5885,21 @@
             "format": "uuid"
           },
           "score": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              }
+            ],
             "format": "int32",
             "nullable": true
           },
@@ -5835,7 +5908,17 @@
             "nullable": true
           },
           "answer": {
-            "$ref": "#/components/schemas/Answer"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/Answer"
+              }
+            ]
           },
           "note": {
             "type": "string"
@@ -5883,7 +5966,6 @@
           "roadmapVersionId": {
             "type": "string",
             "format": "uuid",
-            "default": null,
             "nullable": true
           }
         }
@@ -5965,8 +6047,9 @@
           },
           "counterparts": {
             "type": "array",
-            "items": { },
-            "default": null,
+            "items": {
+              "$ref": "#/components/schemas/Choice"
+            },
             "nullable": true
           },
           "multiple": {
@@ -5990,7 +6073,17 @@
             "format": "uuid"
           },
           "answer": {
-            "$ref": "#/components/schemas/Answer2"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/Answer"
+              }
+            ]
           },
           "note": {
             "type": "string",
@@ -5998,21 +6091,26 @@
           },
           "rating": {
             "type": "string",
-            "default": null,
             "nullable": true
           },
           "previousAttemptId": {
             "type": "string",
             "format": "uuid",
-            "default": null,
             "nullable": true
           },
           "assistance": {
             "type": "string",
-            "default": null,
             "nullable": true
           }
         }
+      },
+      "ItemOutcome": {
+        "enum": [
+          "Answered",
+          "SelfReviewed",
+          "Skipped",
+          null
+        ]
       },
       "ItemPresentation": {
         "required": [
@@ -6048,7 +6146,15 @@
             "format": "uuid"
           },
           "position": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "type": {
@@ -6070,7 +6176,17 @@
             "$ref": "#/components/schemas/Draft"
           },
           "outcome": {
-            "$ref": "#/components/schemas/NullableOfItemOutcome"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/ItemOutcome"
+              }
+            ]
           },
           "hintUsed": {
             "type": "boolean"
@@ -6082,7 +6198,15 @@
             "type": "boolean"
           },
           "hintCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "materialVersionId": {
@@ -6117,27 +6241,81 @@
             "format": "uuid"
           },
           "familyCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "assistedCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "selfReviewCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "qualifyingFamilies": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "qualifyingSessions": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "correctness": {
-            "type": "number",
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              }
+            ],
             "format": "double",
             "nullable": true
           },
@@ -6155,64 +6333,6 @@
           }
         }
       },
-      "KnowledgeResource2": {
-        "required": [
-          "conceptId",
-          "familyCount",
-          "assistedCount",
-          "selfReviewCount",
-          "qualifyingFamilies",
-          "qualifyingSessions",
-          "correctness",
-          "observationIds",
-          "nextPositiveReviewAt"
-        ],
-        "type": "object",
-        "properties": {
-          "conceptId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "familyCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "assistedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "selfReviewCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "qualifyingFamilies": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "qualifyingSessions": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "correctness": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "observationIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          "nextPositiveReviewAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        },
-        "nullable": true
-      },
       "LearningEvent": {
         "type": "object",
         "properties": {
@@ -6229,7 +6349,15 @@
             "format": "uuid"
           },
           "schemaVersion": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "kind": {
@@ -6273,7 +6401,21 @@
             "nullable": true
           },
           "deviceSequence": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              }
+            ],
             "format": "int64",
             "nullable": true
           },
@@ -6305,7 +6447,15 @@
             "type": "string"
           },
           "schemaVersion": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "blocks": {
@@ -6357,15 +6507,6 @@
           }
         }
       },
-      "NullableOfItemOutcome": {
-        "enum": [
-          "Answered",
-          "SelfReviewed",
-          "Skipped",
-          null
-        ],
-        "nullable": true
-      },
       "OperationRequest": {
         "required": [
           "operationId"
@@ -6407,7 +6548,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EnrollmentResource2"
+              "$ref": "#/components/schemas/EnrollmentResource"
             }
           },
           "nextCursor": {
@@ -6617,15 +6758,39 @@
         "type": "object",
         "properties": {
           "requestedCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "actualCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "estimatedSeconds": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "englishFallback": {
@@ -6649,7 +6814,21 @@
             "nullable": true
           },
           "status": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              }
+            ],
             "format": "int32",
             "nullable": true
           },
@@ -6718,7 +6897,17 @@
             "$ref": "#/components/schemas/RoadmapVersion"
           },
           "enrollment": {
-            "$ref": "#/components/schemas/EnrollmentResource"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/EnrollmentResource"
+              }
+            ]
           },
           "stages": {
             "type": "array",
@@ -6747,19 +6936,51 @@
             "type": "string"
           },
           "position": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "minimumFamilies": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "minimumSessions": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "minimumCorrectness": {
-            "type": "number",
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?$",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "double"
           }
         }
@@ -6807,15 +7028,39 @@
             "$ref": "#/components/schemas/SessionState"
           },
           "position": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "requestedCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "actualCount": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           },
           "returnContext": {
@@ -6840,26 +7085,31 @@
         "type": "object",
         "properties": {
           "count": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32",
             "default": 5
           },
           "conceptId": {
             "type": "string",
             "format": "uuid",
-            "default": null,
             "nullable": true
           },
           "roadmapStageId": {
             "type": "string",
             "format": "uuid",
-            "default": null,
             "nullable": true
           },
           "enrollmentId": {
             "type": "string",
             "format": "uuid",
-            "default": null,
             "nullable": true
           },
           "types": {
@@ -6867,7 +7117,6 @@
             "items": {
               "$ref": "#/components/schemas/ExerciseType"
             },
-            "default": null,
             "nullable": true
           },
           "locale": {
@@ -6912,10 +7161,28 @@
             "type": "string"
           },
           "evidence": {
-            "$ref": "#/components/schemas/KnowledgeResource2"
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/KnowledgeResource"
+              }
+            ]
           },
           "availableFamilies": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           }
         }
@@ -6962,7 +7229,15 @@
             }
           },
           "availableFamilies": {
-            "type": "integer",
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
             "format": "int32"
           }
         }

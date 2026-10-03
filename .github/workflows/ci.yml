@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          global-json-file: backend/global.json
           cache: true
           cache-dependency-path: backend/**/packages.lock.json
       - name: Restore locked dependencies
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
           cache-dependency-path: client/package-lock.json
       - run: npm ci
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
           cache-dependency-path: client/package-lock.json
       - run: npm ci
@@ -97,10 +97,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          global-json-file: backend/global.json
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .node-version
       - run: dotnet restore backend/Sensei.sln --locked-mode
       - run: dotnet build backend/Sensei.sln --configuration Release --no-restore
       - run: dotnet tool restore
