@@ -4411,6 +4411,484 @@
         ]
       }
     },
+    "/api/v1/learning/attempts/{attempt}/assessment-preview": {
+      "post": {
+        "tags": [
+          "Optional assessment"
+        ],
+        "operationId": "PreviewAttemptAssessment",
+        "parameters": [
+          {
+            "name": "attempt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentPreview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/learning/attempts/{attempt}/assessments": {
+      "post": {
+        "tags": [
+          "Optional assessment"
+        ],
+        "operationId": "RequestAttemptAssessment",
+        "parameters": [
+          {
+            "name": "attempt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAssessment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "headers": {
+              "ETag": {
+                "description": "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentJobResource"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Optional assessment"
+        ],
+        "operationId": "ListAttemptAssessments",
+        "parameters": [
+          {
+            "name": "attempt",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size from 1 to 100; defaults to 25.",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque nextCursor from the preceding page. Keep owner and filters unchanged.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageEnvelopeOfAssessmentJobResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/learning/assessments/{id}": {
+      "get": {
+        "tags": [
+          "Optional assessment"
+        ],
+        "operationId": "GetAttemptAssessment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentJobResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/learning/assessments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Optional assessment"
+        ],
+        "operationId": "CancelAttemptAssessment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "Strong ETag of the resource's current version, including double quotes. Required for this mutation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelAssessment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentJobResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "Problem Details with code and traceId",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/work/episodes": {
       "post": {
         "tags": [
@@ -5822,6 +6300,318 @@
           }
         }
       },
+      "AssessmentDisclosure": {
+        "required": [
+          "task",
+          "systemPrompt",
+          "input",
+          "schema",
+          "templateVersion",
+          "contractVersion",
+          "routeRevision",
+          "routeDigest",
+          "model",
+          "provider",
+          "origin",
+          "dataScope",
+          "routerPrivacyPolicy",
+          "routerPrivacyReviewedAt",
+          "providerPrivacyPolicy",
+          "providerPrivacyReviewedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "systemPrompt": {
+            "type": "string"
+          },
+          "input": {
+            "$ref": "#/components/schemas/AssessmentInput"
+          },
+          "schema": {
+            "type": "string"
+          },
+          "templateVersion": {
+            "type": "string"
+          },
+          "contractVersion": {
+            "type": "string"
+          },
+          "routeRevision": {
+            "type": "string"
+          },
+          "routeDigest": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "dataScope": {
+            "type": "string"
+          },
+          "routerPrivacyPolicy": {
+            "type": "string"
+          },
+          "routerPrivacyReviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providerPrivacyPolicy": {
+            "type": "string"
+          },
+          "providerPrivacyReviewedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AssessmentFeedbackResource": {
+        "required": [
+          "id",
+          "revision",
+          "scope",
+          "origin",
+          "exerciseVersionId",
+          "inputDigest",
+          "routeDigest",
+          "templateVersion",
+          "contractVersion",
+          "output",
+          "provenance",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "exerciseVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inputDigest": {
+            "type": "string"
+          },
+          "routeDigest": {
+            "type": "string"
+          },
+          "templateVersion": {
+            "type": "string"
+          },
+          "contractVersion": {
+            "type": "string"
+          },
+          "output": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/JsonElement"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AssessmentInput": {
+        "required": [
+          "attemptId",
+          "exerciseVersionId",
+          "promptJson",
+          "interactionJson",
+          "evaluationJson",
+          "answerJson",
+          "note",
+          "selfReview",
+          "assisted",
+          "answerAware"
+        ],
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "exerciseVersionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "promptJson": {
+            "type": "string"
+          },
+          "interactionJson": {
+            "type": "string"
+          },
+          "evaluationJson": {
+            "type": "string"
+          },
+          "answerJson": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "selfReview": {
+            "type": "string",
+            "nullable": true
+          },
+          "assisted": {
+            "type": "boolean"
+          },
+          "answerAware": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AssessmentJobResource": {
+        "required": [
+          "id",
+          "attemptId",
+          "state",
+          "versionToken",
+          "failureCode",
+          "invocationCount",
+          "createdAt",
+          "updatedAt",
+          "notBefore",
+          "replayed",
+          "feedback"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attemptId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "$ref": "#/components/schemas/AssessmentState"
+          },
+          "versionToken": {
+            "type": "string"
+          },
+          "failureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "invocationCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notBefore": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "replayed": {
+            "type": "boolean"
+          },
+          "feedback": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/AssessmentFeedbackResource"
+              }
+            ]
+          }
+        }
+      },
+      "AssessmentPreview": {
+        "required": [
+          "available",
+          "reason",
+          "digest",
+          "disclosure"
+        ],
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string",
+            "nullable": true
+          },
+          "disclosure": {
+            "oneOf": [
+              {
+                "enum": [
+                  null
+                ],
+                "nullable": true
+              },
+              {
+                "$ref": "#/components/schemas/AssessmentDisclosure"
+              }
+            ]
+          }
+        }
+      },
+      "AssessmentState": {
+        "enum": [
+          "Queued",
+          "Running",
+          "Retry",
+          "Succeeded",
+          "Failed",
+          "Cancelled",
+          "Obsolete"
+        ]
+      },
       "AssistanceLevel": {
         "enum": [
           "None",
@@ -5854,6 +6644,19 @@
             "nullable": true
           }
         }
+      },
+      "CancelAssessment": {
+        "required": [
+          "operationId"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
       },
       "Choice": {
         "required": [
@@ -6851,6 +7654,7 @@
           }
         }
       },
+      "JsonElement": { },
       "KnowledgeResource": {
         "required": [
           "conceptId",
@@ -7160,6 +7964,25 @@
           "operationId": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "PageEnvelopeOfAssessmentJobResource": {
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssessmentJobResource"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -7563,6 +8386,23 @@
             "$ref": "#/components/schemas/RelationKind"
           }
         }
+      },
+      "RequestAssessment": {
+        "required": [
+          "operationId",
+          "disclosureDigest"
+        ],
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "disclosureDigest": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
       },
       "RevisionApprovalState": {
         "enum": [
@@ -8145,6 +8985,9 @@
     },
     {
       "name": "Learning runtime"
+    },
+    {
+      "name": "Optional assessment"
     },
     {
       "name": "Work Reflection"

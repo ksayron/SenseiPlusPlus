@@ -54,12 +54,12 @@ builder.Services.AddOpenApi("v1", options =>
         operation.Responses ??= new OpenApiResponses();
         operation.Parameters ??= new List<IOpenApiParameter>();
 
-        var mutation = context.Description.HttpMethod is "PUT" or "DELETE" || context.Description.HttpMethod == "POST" && path.Contains("/sessions/", StringComparison.Ordinal);
+        var mutation = context.Description.HttpMethod is "PUT" or "DELETE" || context.Description.HttpMethod == "POST" && (path.Contains("/sessions/", StringComparison.Ordinal) || path.EndsWith("/cancel", StringComparison.Ordinal));
         if (mutation) operation.Parameters.Add(new OpenApiParameter { Name = "If-Match", In = ParameterLocation.Header, Required = true, Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
         foreach (var status in mutation ? new[] { "400", "404", "409", "412", "428" } : new[] { "400", "404", "409" })
             operation.Responses.TryAdd(status, new OpenApiResponse { Description = "Problem Details with code and traceId", Content = new Dictionary<string, OpenApiMediaType> { ["application/problem+json"] = new() { Schema = new OpenApiSchemaReference("ProblemDetails", context.Document) } } });
-        if (mutation || context.Description.HttpMethod == "POST" && (path.EndsWith("/sessions") || path.EndsWith("/goals") || path.EndsWith("/roadmap-enrollments")) || operation.OperationId == "GetLearningSession")
-            foreach (var response in operation.Responses.Where(x => x.Key is "200" or "201").Select(x => x.Value).OfType<OpenApiResponse>())
+        if (mutation || context.Description.HttpMethod == "POST" && (path.EndsWith("/sessions") || path.EndsWith("/goals") || path.EndsWith("/roadmap-enrollments") || path.EndsWith("/assessments")) || operation.OperationId is "GetLearningSession" or "GetAttemptAssessment")
+            foreach (var response in operation.Responses.Where(x => x.Key is "200" or "201" or "202").Select(x => x.Value).OfType<OpenApiResponse>())
             {
                 response.Headers ??= new Dictionary<string, IOpenApiHeader>();
                 response.Headers["ETag"] = new OpenApiHeader { Description = "Current strong resource ETag; receiptVersionToken may describe an earlier committed response.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } };
@@ -247,6 +247,7 @@ app.MapSenseiAuthentication();
 app.MapIdentityEndpoints();
 app.MapLearningEndpoints();
 app.MapLearningRuntime();
+app.MapAssessmentEndpoints();
 app.MapWorkReflectionEndpoints();
 app.MapEvidenceEndpoints();
 app.MapExperienceEndpoints();

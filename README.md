@@ -13,6 +13,7 @@ The workspace now uses [local email/password authentication](docs/16-local-authe
 The [original learning specification](docs/inputs/learning-system-specification.md) is preserved unchanged.
 
 The optional [free-only AI gateway](docs/17-free-only-ai-gateway.md) has offline adapters and pilot tooling. AI configuration and live provider review are deferred; core learning does not call it.
+The [durable assessment pipeline](docs/19-durable-attempt-assessments.md) supports a separate optional request after saving an attempt, with PostgreSQL recovery and attributed exploratory feedback. The shipped route policy remains unavailable while provider activation is deferred.
 
 The [`backend`](backend/README.md) contains the modular-monolith host and domain-aware module CRUDs. The [`client`](client/README.md) is a responsive React + TypeScript workbench for learning, reflection, evidence, and revisioned experience.
 

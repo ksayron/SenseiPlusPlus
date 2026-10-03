@@ -12,6 +12,10 @@ public static class LearningInfrastructure
     public static IServiceCollection AddLearningModule(this IServiceCollection services) => services
         .AddScoped<ILearningStore, LearningStore>()
         .AddScoped<LearningRuntime>()
+        .AddScoped<AssessmentService>()
+        .AddScoped<IAssessmentQueue, PostgresAssessmentQueue>()
+        .AddSingleton<IAssessmentRoutePolicy, DeferredAssessmentRoutePolicy>()
+        .AddHostedService<AssessmentWorker>()
         .AddScoped<LearningFixtures>()
         .AddScoped<IConceptRepository, EfConceptRepository>()
         .AddScoped<IConceptService, ConceptService>();

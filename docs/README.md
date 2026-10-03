@@ -31,6 +31,7 @@ The current repository has a modular backend, PostgreSQL persistence, concept/ev
 | [Toolchain upgrade](15-toolchain-upgrade.md) | .NET 10 / Node 24 pins, compatibility work, branch protection and current validation |
 | [Local authentication](16-local-authentication.md) | Local registration/sign-in, cookie and antiforgery contract, owner isolation and existing-profile recovery |
 | [Free-only AI gateway](17-free-only-ai-gateway.md) | Provider-neutral adapters, fail-closed guards, offline pilot tooling and deferred live configuration/review |
+| [Durable optional assessment](19-durable-attempt-assessments.md) | Separate assessment of saved attempts, leased PostgreSQL jobs, fenced recovery, exploratory revisions and deferred provider activation |
 | [UI design documentation](ui/README.md) | Selected Coastal/cobalt SPA guidelines, visual identity, component handoff, and working demo reference |
 | [Original learning specification](inputs/learning-system-specification.md) | Unchanged user-supplied input; the discussion refinements are recorded in the learning system decision table |
 

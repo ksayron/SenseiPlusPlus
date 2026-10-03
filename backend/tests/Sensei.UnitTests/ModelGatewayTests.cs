@@ -29,6 +29,21 @@ public sealed class ModelGatewayTests
     }
     private static HttpResponseMessage Response(string content, HttpStatusCode status = HttpStatusCode.OK) => new(status) { Content = new StringContent(content) };
 
+    [Fact]
+    public async Task Rate_limit_returns_retry_after_without_retrying_or_exposing_the_body()
+    {
+        var handler = new Handler((message, _) =>
+        {
+            var response = message.Method == HttpMethod.Get ? Response(Metadata()) : Response("private provider diagnostic", HttpStatusCode.TooManyRequests);
+            if (message.Method == HttpMethod.Post) response.Headers.RetryAfter = new(TimeSpan.FromMinutes(7));
+            return Task.FromResult(response);
+        });
+        using var gateway = new OpenRouterModelGateway(Route, () => "test-secret", handler);
+        var result = await gateway.CompleteAsync(Request);
+        Assert.Equal(ModelFailure.RateLimited, result.Failure); Assert.Equal(TimeSpan.FromMinutes(7), result.RetryAfter);
+        Assert.Null(result.Output); Assert.Equal(2, handler.Calls); Assert.DoesNotContain("private provider", result.ToString());
+    }
+
     [Theory]
     [InlineData("{}", ModelFailure.UnknownPrice)]
     [InlineData("{\"prompt\":\"0\",\"completion\":\"0\"}", ModelFailure.UnknownPrice)]

@@ -626,6 +626,298 @@ namespace Sensei.Host.Persistence.Migrations
                     b.ToTable("login_accounts", "identity");
                 });
 
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentFeedbackRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("AuditJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("audit_json");
+
+                    b.Property<string>("ContractVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contract_version");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<string>("InputDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("input_digest");
+
+                    b.Property<Guid>("InvocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invocation_id");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<string>("OutputJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("output_json");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("RouteDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("route_digest");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
+
+                    b.Property<string>("TemplateVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("template_version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "AttemptId", "Revision")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "JobId", "InvocationId");
+
+                    b.HasIndex("OwnerId", "JobId", "AttemptId", "ExerciseVersionId");
+
+                    b.ToTable("assessment_feedback_revisions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentInvocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AuditJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("audit_json");
+
+                    b.Property<string>("FailureCode")
+                        .HasColumnType("text")
+                        .HasColumnName("failure_code");
+
+                    b.Property<long>("Fence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fence");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<int>("Generation")
+                        .HasColumnType("integer")
+                        .HasColumnName("generation");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_digest");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartedAt");
+
+                    b.HasIndex("JobId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("assessment_invocations", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("CommandDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("command_digest");
+
+                    b.Property<string>("ContractVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contract_version");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisclosureDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("disclosure_digest");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<string>("FailureCode")
+                        .HasColumnType("text")
+                        .HasColumnName("failure_code");
+
+                    b.Property<long>("Fence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fence");
+
+                    b.Property<int>("Generation")
+                        .HasColumnType("integer")
+                        .HasColumnName("generation");
+
+                    b.Property<string>("InputDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("input_digest");
+
+                    b.Property<string>("InputJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("input_json");
+
+                    b.Property<int>("InvocationCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("invocation_count");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lease_until");
+
+                    b.Property<DateTimeOffset>("NotBefore")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_before");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Repairs")
+                        .HasColumnType("integer")
+                        .HasColumnName("repairs");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_digest");
+
+                    b.Property<string>("RouteDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("route_digest");
+
+                    b.Property<string>("RouteJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("route_json");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("state");
+
+                    b.Property<string>("TemplateVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("template_version");
+
+                    b.Property<int>("TransientRetries")
+                        .HasColumnType("integer")
+                        .HasColumnName("transient_retries");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "AttemptId")
+                        .IsUnique()
+                        .HasFilter("state IN ('Queued', 'Running', 'Retry')");
+
+                    b.HasIndex("OwnerId", "OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "AttemptId", "ExerciseVersionId");
+
+                    b.HasIndex("State", "NotBefore", "CreatedAt");
+
+                    b.ToTable("assessment_jobs", "learning", t =>
+                        {
+                            t.HasCheckConstraint("ck_assessment_bounds", "invocation_count BETWEEN 0 AND 3 AND transient_retries BETWEEN 0 AND 1 AND repairs BETWEEN 0 AND 1 AND version >= 1 AND generation >= 0 AND fence >= 0");
+
+                            t.HasCheckConstraint("ck_assessment_origin", "origin IN ('Provider','Fixture')");
+
+                            t.HasCheckConstraint("ck_assessment_state", "state IN ('Queued','Running','Retry','Succeeded','Failed','Cancelled','Obsolete') AND ((state = 'Running') = (lease_until IS NOT NULL))");
+                        });
+                });
+
             modelBuilder.Entity("Sensei.Modules.Learning.Domain.Concept", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1691,6 +1983,43 @@ namespace Sensei.Host.Persistence.Migrations
                         .WithOne()
                         .HasForeignKey("Sensei.Modules.Identity.Infrastructure.LoginAccount", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentFeedbackRevision", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentInvocation", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId", "InvocationId")
+                        .HasPrincipalKey("OwnerId", "JobId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentJob", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId", "AttemptId", "ExerciseVersionId")
+                        .HasPrincipalKey("OwnerId", "Id", "AttemptId", "ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentInvocation", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentJob", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentJob", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "AttemptId", "ExerciseVersionId")
+                        .HasPrincipalKey("OwnerId", "Id", "ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

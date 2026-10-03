@@ -20,6 +20,7 @@ import { messages } from "./messages";
 import { initialAnswer } from "./answer";
 import { useLoad } from "./useLoad";
 import { EvidenceHistory } from "./EvidenceHistory";
+import { OptionalAssessment } from "./OptionalAssessment";
 
 export function SessionPage({ summary = false }: { summary?: boolean }) {
   const { id } = useParams();
@@ -601,6 +602,7 @@ function SessionPlayer({
                               {f.note}
                             </p>
                           )}
+                          <OptionalAssessment attemptId={f.attemptId} />
                         </div>
                       ))
                     )}
@@ -743,6 +745,7 @@ function SavedItem({ item }: { item: Item }) {
             {new Date(f.receivedAt).toLocaleString()}
           </small>
           <EvidenceHistory conceptId={item.conceptId} attemptId={f.attemptId} />
+          <OptionalAssessment attemptId={f.attemptId} />
         </div>
       ))}
     </details>

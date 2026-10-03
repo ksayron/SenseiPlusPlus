@@ -6,6 +6,32 @@ import {
 } from "@playwright/test";
 import type { Mutation, Session, Topic } from "../src/learning/contracts";
 const backend = "http://127.0.0.1:5173/api/v1";
+test("optional AI feedback remains separate from a durable saved attempt when configuration is deferred", async ({ page, request }, info) => {
+  const { session } = await prepare(page, request, "MultipleChoice");
+  await expect(page.getByRole("button", { name: "Optional AI feedback", exact: true })).toHaveCount(0);
+  await page.locator("fieldset input").first().check();
+  await page.getByRole("button", { name: "Submit answer", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Saved feedback" })).toBeVisible();
+  const before = await (await request.get(`${backend}/learning/sessions/${session.id}`)).json() as Session;
+  const attempt = before.items[0].feedback[0];
+  await page.getByRole("button", { name: "Optional AI feedback", exact: true }).click();
+  const panel = page.getByRole("region", { name: "Optional assessment" });
+  await expect(panel).toContainText("provider configuration and qualification are deferred");
+  await expect(panel).toContainText("does not change your knowledge scores");
+  await expect(panel.getByRole("button", { name: "Request optional feedback", exact: true })).toHaveCount(0);
+  const jobs = await (await request.get(`${backend}/learning/attempts/${attempt.attemptId}/assessments`)).json();
+  expect(jobs.items).toEqual([]);
+  const saved = await (await request.get(`${backend}/learning/attempts/${attempt.attemptId}`)).json();
+  expect(saved.score).toBe(attempt.score); expect(saved.note).toBe(attempt.note);
+  await page.screenshot({ path: `${process.env.SPA_SCREENSHOT_DIR ?? "../.tmp/assessment-browser"}/assessment-${info.project.name}.png`, fullPage: true });
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Optional AI feedback", exact: true })).toBeVisible();
+  expect((await (await request.get(`${backend}/learning/sessions/${session.id}`)).json() as Session).items[0].feedback[0].attemptId).toBe(attempt.attemptId);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.locator(".summary-item summary").first().click();
+  await page.getByRole("button", { name: "Optional AI feedback", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Optional assessment" })).toContainText("provider configuration and qualification are deferred");
+});
 test("unrelated subject accepts an authored alternative through the same player", async ({ page, request }) => {
   await prepare(page, request, "Matching", "orbital-signals-fixture");
   const selects = page.locator(".matching-row select");

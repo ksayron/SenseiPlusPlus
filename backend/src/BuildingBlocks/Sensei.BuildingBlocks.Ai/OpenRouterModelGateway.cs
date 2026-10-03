@@ -73,7 +73,12 @@ public sealed class OpenRouterModelGateway : IModelGateway, IDisposable
             completion.Headers.Add("X-OpenRouter-Title", "Sensei++ public feasibility pilot");
             sendingCompletion = true;
             using var response = await client.SendAsync(completion, HttpCompletionOption.ResponseHeadersRead, linked.Token);
-            if (response.StatusCode == HttpStatusCode.TooManyRequests) return Failed(ModelFailure.RateLimited);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                var retry = response.Headers.RetryAfter;
+                var delay = retry?.Delta ?? (retry?.Date is { } date ? date - clock.GetUtcNow() : null);
+                return Failed(ModelFailure.RateLimited) with { RetryAfter = delay > TimeSpan.Zero ? delay : null };
+            }
             if (response.StatusCode == HttpStatusCode.PaymentRequired) return Failed(ModelFailure.QuotaExhausted);
             if (!response.IsSuccessStatusCode) return Failed(ModelFailure.ProviderUnavailable);
             using var document = JsonDocument.Parse(await ReadLimited(response, linked.Token), new() { MaxDepth = 32 });
@@ -138,7 +143,7 @@ public sealed class OpenRouterModelGateway : IModelGateway, IDisposable
             ["max_tokens"] = route.MaxOutputTokens,
             ["messages"] = new[]
             {
-                new { role = "system", content = request.SystemPrompt + FreeOnlyPolicy.OutputInstruction + request.Contract.Schema.GetRawText() },
+                new { role = "system", content = request.WireSystemPrompt },
                 new { role = "user", content = request.Input }
             },
             ["provider"] = new
