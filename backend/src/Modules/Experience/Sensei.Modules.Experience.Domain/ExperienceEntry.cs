@@ -101,7 +101,7 @@ public sealed record ExperienceRevisionContent(
     string Alternatives,
     string Outcome,
     ImpactState ImpactState,
-    IReadOnlyCollection<Guid> ConceptIds)
+    IReadOnlyCollection<Guid> ConceptIds, string Uncertainty = "", string Assistance = "")
 {
     public void Validate()
     {
@@ -137,6 +137,8 @@ public sealed class ExperienceRevision
     public string Actions { get; private set; } = string.Empty;
     public string Alternatives { get; private set; } = string.Empty;
     public string Outcome { get; private set; } = string.Empty;
+    public string Uncertainty { get; private set; } = "";
+    public string Assistance { get; private set; } = "";
     public ImpactState ImpactState { get; private set; }
     public IReadOnlyCollection<Guid> ConceptIds => _concepts.Select(concept => concept.ConceptId).ToArray();
     public IReadOnlyCollection<ExperienceRevisionConcept> Concepts => _concepts.AsReadOnly();
@@ -162,6 +164,8 @@ public sealed class ExperienceRevision
             Actions = content.Actions.Trim(),
             Alternatives = (content.Alternatives ?? string.Empty).Trim(),
             Outcome = (content.Outcome ?? string.Empty).Trim(),
+            Uncertainty = content.Uncertainty ?? "",
+            Assistance = content.Assistance ?? "",
             ImpactState = content.ImpactState,
             ApprovalState = RevisionApprovalState.Draft,
             CreatedAt = now

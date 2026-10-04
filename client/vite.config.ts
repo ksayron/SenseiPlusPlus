@@ -17,6 +17,8 @@ export default defineConfig({
     fs: { allow: [fileURLToPath(new URL('.', import.meta.url)), fileURLToPath(new URL('../docs', import.meta.url))] },
     proxy: {
       '/api': 'http://localhost:5062',
+      '^/connect/': 'http://localhost:5062',
+      '/.well-known': 'http://localhost:5062',
       '/health': 'http://localhost:5062',
     },
   },

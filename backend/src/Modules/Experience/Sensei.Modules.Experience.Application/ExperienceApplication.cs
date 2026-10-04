@@ -12,7 +12,7 @@ public sealed record CreateExperienceEntryCommand(
     string Alternatives,
     string Outcome,
     ImpactState ImpactState,
-    IReadOnlyCollection<Guid> ConceptIds);
+    IReadOnlyCollection<Guid> ConceptIds, string Uncertainty = "", string Assistance = "");
 
 public sealed record ReviseExperienceEntryCommand(
     string Title,
@@ -24,7 +24,7 @@ public sealed record ReviseExperienceEntryCommand(
     string Outcome,
     ImpactState ImpactState,
     IReadOnlyCollection<Guid> ConceptIds,
-    int ExpectedVersion);
+    int ExpectedVersion, string Uncertainty = "", string Assistance = "");
 
 public sealed record ApproveExperienceRevisionCommand(int ExpectedVersion);
 
@@ -41,7 +41,7 @@ public sealed record ExperienceRevisionResponse(
     IReadOnlyCollection<Guid> ConceptIds,
     RevisionApprovalState ApprovalState,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? ApprovedAt);
+    DateTimeOffset? ApprovedAt, string Uncertainty = "", string Assistance = "");
 
 public sealed record ExperienceEntryResponse(
     Guid Id,
@@ -175,7 +175,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         command.Alternatives,
         command.Outcome,
         command.ImpactState,
-        command.ConceptIds);
+        command.ConceptIds, command.Uncertainty, command.Assistance);
 
     private static ExperienceRevisionContent ToContent(ReviseExperienceEntryCommand command) => new(
         command.Title,
@@ -186,7 +186,7 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
         command.Alternatives,
         command.Outcome,
         command.ImpactState,
-        command.ConceptIds);
+        command.ConceptIds, command.Uncertainty, command.Assistance);
 
     private static ExperienceEntryResponse? MapOrNull(ExperienceEntry? entry) => entry is null ? null : Map(entry);
 
@@ -209,5 +209,5 @@ public sealed class ExperienceEntryService(IExperienceEntryRepository repository
             revision.ConceptIds,
             revision.ApprovalState,
             revision.CreatedAt,
-            revision.ApprovedAt)).ToArray());
+            revision.ApprovedAt, revision.Uncertainty, revision.Assistance)).ToArray());
 }

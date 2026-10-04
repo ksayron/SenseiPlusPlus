@@ -87,6 +87,8 @@ internal sealed class ExperienceRevisionConfiguration : IEntityTypeConfiguration
         builder.Property(revision => revision.Role).HasColumnName("role").IsRequired();
         builder.Property(revision => revision.Actions).HasColumnName("actions").IsRequired();
         builder.Property(revision => revision.Alternatives).HasColumnName("alternatives").IsRequired();
+        builder.Property(revision => revision.Uncertainty).HasColumnName("uncertainty").IsRequired();
+        builder.Property(revision => revision.Assistance).HasColumnName("assistance").IsRequired();
         builder.Property(revision => revision.Outcome).HasColumnName("outcome").IsRequired();
         builder.Property(revision => revision.ImpactState).HasColumnName("impact_state").HasConversion<string>().HasMaxLength(32);
         builder.Property(revision => revision.ApprovalState).HasColumnName("approval_state").HasConversion<string>().HasMaxLength(32);

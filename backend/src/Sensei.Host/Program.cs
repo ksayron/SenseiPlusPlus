@@ -1,5 +1,8 @@
 using Sensei.Host.Authentication;
 using Sensei.Host.Security;
+using Sensei.Host.Integrations;
+using OpenIddict.Validation.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +34,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestBodySize = RequestSecurity.MaximumBodyBytes;
 });
 builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
+builder.Logging.AddFilter("OpenIddict", LogLevel.None);
 
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
 {
@@ -88,7 +92,7 @@ builder.Services.AddOpenApi("v1", options =>
     document.Info.Title = "Sensei++ API";
     document.Info.Version = "v1";
     document.Info.Description = "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. " +
-        "Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. " +
+        "Fetch /api/v1/auth/csrf and send X-CSRF-Token on every cookie-authenticated state-changing API request. Explicit agent routes accept scoped bearer credentials instead of cookies and are exempt from CSRF; an Authorization header does not exempt other routes. Local registration is disabled outside Development and Testing. " +
         "Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match " +
         "header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, " +
         "and stale tokens return 412. Creates do not require If-Match and return the initial ETag. " +
@@ -98,18 +102,20 @@ builder.Services.AddOpenApi("v1", options =>
     document.Components ??= new OpenApiComponents();
     document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
     document.Components.SecuritySchemes["SessionCookie"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.ApiKey, In = ParameterLocation.Cookie, Name = "sensei.session" };
+    document.Components.SecuritySchemes["AgentBearer"] = new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer", Description = "Scoped CLI access token; browser cookies are not accepted on agent routes." };
     foreach (var path in document.Paths)
     foreach (var entry in path.Value.Operations ?? [])
     {
         var op = entry.Value;
+        var agentEndpoint = path.Key.StartsWith("/api/v1/agent/", StringComparison.Ordinal) || path.Key.StartsWith("/api/v1/experience/imports", StringComparison.Ordinal);
         var anonymous = path.Key is "/" or "/health" or "/api/v1/auth/csrf" or "/api/v1/auth/login" or "/api/v1/auth/register";
         if (!anonymous)
         {
-            op.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("SessionCookie", document)] = [] }];
+            op.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference(agentEndpoint ? "AgentBearer" : "SessionCookie", document)] = [] }];
             op.Responses ??= new OpenApiResponses();
             op.Responses.TryAdd("401", new OpenApiResponse { Description = "Sign in required" });
         }
-        if (entry.Key != HttpMethod.Get && path.Key.StartsWith("/api/", StringComparison.Ordinal))
+        if (!agentEndpoint && entry.Key != HttpMethod.Get && path.Key.StartsWith("/api/", StringComparison.Ordinal))
         {
             op.Parameters ??= new List<IOpenApiParameter>();
             op.Parameters.Add(new OpenApiParameter { Name = "X-CSRF-Token", In = ParameterLocation.Header, Required = true, Description = "Request token from /api/v1/auth/csrf for the current sign-in state.", Schema = new OpenApiSchema { Type = JsonSchemaType.String } });
@@ -176,6 +182,7 @@ builder.Services.AddScoped<ILearningKnowledge, LearningKnowledgeAdapter>();
 builder.Services.AddScoped<Sensei.Modules.Evidence.Application.IEvidenceSourceAccess, EvidenceSourceAccess>();
 
 builder.Services.AddSenseiAuthentication(builder.Environment, builder.Configuration);
+builder.Services.AddAgentOAuth(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
@@ -235,12 +242,31 @@ app.MapGet("/health", async (HealthCheckService healthChecks) =>
 .Produces<HealthResponse>(StatusCodes.Status503ServiceUnavailable);
 app.MapOpenApi("/openapi/{documentName}.json");
 
+app.Use(async (c, next) =>
+{
+    if (c.Request.Path.StartsWithSegments("/connect")) await AgentOAuth.SeedClient(c.RequestServices);
+    await next(c);
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.Use(async (c, next) =>
+{
+    if (c.GetEndpoint()?.Metadata.GetMetadata<AgentBearerEndpoint>() is not null)
+    {
+        var auth = await c.AuthenticateAsync(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        if (!auth.Succeeded || !await AgentOAuth.ValidGrant(auth.Principal!, c.RequestServices.GetRequiredService<SenseiDbContext>(),
+            c.RequestServices.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Sensei.Modules.Identity.Infrastructure.LoginAccount>>(), c.RequestAborted))
+        { await HttpContract.Problem(c, "authentication_required", 401, "Sign in required").ExecuteAsync(c); return; }
+        c.User = auth.Principal!;
+    }
+    await next(c);
+});
 app.Use(AuthenticationSetup.ValidateCsrf);
 app.Use(RequestSecurity.BoundBody);
 app.MapSenseiAuthentication();
+app.MapAgentOAuth();
+app.MapProfessionalImports();
 
 app.MapIdentityEndpoints();
 app.MapLearningEndpoints();

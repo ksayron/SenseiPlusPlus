@@ -12,7 +12,11 @@ public sealed class EvidenceSourceAccess(SenseiDbContext db) : IEvidenceSourceAc
 {
     public async Task RequireAsync(Guid ownerId, EvidenceSourceKind kind, Guid sourceId, CancellationToken ct)
     {
-        if (kind == EvidenceSourceKind.ApprovedExperienceRevision)
+        if (kind == EvidenceSourceKind.ProfessionalEventImport)
+        {
+            if (!await db.Set<Sensei.Host.Integrations.ProfessionalImport>().AnyAsync(x => x.OwnerId == ownerId && x.EventId == sourceId, ct)) throw new ResourceNotFoundException();
+        }
+        else if (kind == EvidenceSourceKind.ApprovedExperienceRevision)
         {
             if (!await db.Set<ExperienceEntry>().AnyAsync(x => x.Id == sourceId && x.OwnerId == ownerId && x.Revisions.Any(r => r.ApprovalState == RevisionApprovalState.Approved), ct))
                 throw new ResourceNotFoundException();

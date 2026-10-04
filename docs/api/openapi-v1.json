@@ -2,7 +2,7 @@
   "openapi": "3.0.4",
   "info": {
     "title": "Sensei++ API",
-    "description": "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. Fetch /api/v1/auth/csrf and send X-CSRF-Token on every state-changing API request. Local registration is disabled outside Development and Testing. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Creates do not require If-Match and return the initial ETag. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
+    "description": "Versioned API. Sign in using the HttpOnly sensei.session cookie. Owner IDs are derived from the authenticated principal. Fetch /api/v1/auth/csrf and send X-CSRF-Token on every cookie-authenticated state-changing API request. Explicit agent routes accept scoped bearer credentials instead of cookies and are exempt from CSRF; an Authorization header does not exempt other routes. Local registration is disabled outside Development and Testing. Resources return an opaque versionToken and an ETag header. Send that ETag as a single strong If-Match header on updates, approvals, and DELETE actions. Missing If-Match returns 428, malformed tokens return 400, and stale tokens return 412. Creates do not require If-Match and return the initial ETag. Lists return { items, nextCursor }; limit defaults to 25 and accepts 1 to 100. Pass nextCursor as cursor with the same owner and filters. Errors use application/problem+json with code and traceId.",
     "version": "v1"
   },
   "paths": {
@@ -46,6 +46,339 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/auth/cli-consent/{ticket}": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "parameters": [
+          {
+            "name": "ticket",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "parameters": [
+          {
+            "name": "ticket",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CliConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/connections": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/connections/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/agent/profile": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "AgentBearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/agent/concepts": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "AgentBearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/experience/imports": {
+      "post": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "operationId": "ImportProfessionalEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfessionalEventImportV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReceipt"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload Too Large",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "AgentBearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/experience/imports/{eventId}": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "operationId": "GetProfessionalImportReceipt",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "AgentBearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/experience/entries/{entryId}/import": {
+      "get": {
+        "tags": [
+          "Sensei.Host"
+        ],
+        "operationId": "InspectExperienceImport",
+        "parameters": [
+          {
+            "name": "entryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfessionalEventImportV1"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
       }
     },
     "/api/v1/evidence/knowledge": {
@@ -6617,7 +6950,8 @@
           "None",
           "HintUsed",
           "ReferenceReviewed",
-          "SelfReviewed"
+          "SelfReviewed",
+          "Unspecified"
         ]
       },
       "AssistanceView": {
@@ -6670,6 +7004,17 @@
           },
           "text": {
             "type": "string"
+          }
+        }
+      },
+      "CliConsentRequest": {
+        "required": [
+          "approve"
+        ],
+        "type": "object",
+        "properties": {
+          "approve": {
+            "type": "boolean"
           }
         }
       },
@@ -7103,7 +7448,8 @@
           "Declaration",
           "Attempt",
           "FeedbackRevision",
-          "ApprovedExperienceRevision"
+          "ApprovedExperienceRevision",
+          "ProfessionalEventImport"
         ]
       },
       "EvidenceStatus": {
@@ -7205,6 +7551,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          "uncertainty": {
+            "type": "string",
+            "default": ""
+          },
+          "assistance": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -7280,6 +7634,14 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "uncertainty": {
+            "type": "string",
+            "default": ""
+          },
+          "assistance": {
+            "type": "string",
+            "default": ""
           }
         }
       },
@@ -7464,6 +7826,57 @@
           "Qualitative",
           "Measured"
         ]
+      },
+      "ImportReceipt": {
+        "required": [
+          "eventId",
+          "entryId",
+          "revisionNumber",
+          "observationIds",
+          "payloadDigest",
+          "receivedAt",
+          "experiencePath"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revisionNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "format": "int32"
+          },
+          "observationIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "payloadDigest": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "experiencePath": {
+            "type": "string"
+          }
+        }
       },
       "Interaction": {
         "required": [
@@ -8317,6 +8730,98 @@
           }
         }
       },
+      "ProfessionalEventImportV1": {
+        "required": [
+          "eventId",
+          "schemaVersion",
+          "setting",
+          "eventDate",
+          "title",
+          "context",
+          "role",
+          "actions",
+          "alternatives",
+          "outcome",
+          "uncertainty",
+          "assistance",
+          "conceptIds",
+          "claimProvenance"
+        ],
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "schemaVersion": {
+            "maximum": 1,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "setting": {
+            "pattern": "^(Employment|Coursework|PersonalProject|Other)$",
+            "type": "string"
+          },
+          "eventDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "type": "string"
+          },
+          "context": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "role": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "actions": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "alternatives": {
+            "maxLength": 4096,
+            "minLength": 0,
+            "type": "string"
+          },
+          "outcome": {
+            "maxLength": 4096,
+            "minLength": 0,
+            "type": "string"
+          },
+          "uncertainty": {
+            "maxLength": 4096,
+            "minLength": 0,
+            "type": "string"
+          },
+          "assistance": {
+            "maxLength": 4096,
+            "minLength": 1,
+            "type": "string"
+          },
+          "conceptIds": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "claimProvenance": {
+            "pattern": "^client_reported$",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "ReauthenticateRequest": {
         "required": [
           "password"
@@ -8964,6 +9469,11 @@
         "type": "apiKey",
         "name": "sensei.session",
         "in": "cookie"
+      },
+      "AgentBearer": {
+        "type": "http",
+        "description": "Scoped CLI access token; browser cookies are not accepted on agent routes.",
+        "scheme": "bearer"
       }
     }
   },

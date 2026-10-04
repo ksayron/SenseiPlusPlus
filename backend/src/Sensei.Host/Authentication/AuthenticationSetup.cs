@@ -104,7 +104,7 @@ public static class AuthenticationSetup
             await HttpContract.Problem(c, "account_changed", 409, "Account changed", "Reload this workspace before sending more work.").ExecuteAsync(c);
             return;
         }
-        if (c.Request.Path.StartsWithSegments("/api") && c.Request.Method is not ("GET" or "HEAD" or "OPTIONS") &&
+        if (c.GetEndpoint()?.Metadata.GetMetadata<AgentBearerEndpoint>() is null && c.Request.Path.StartsWithSegments("/api") && c.Request.Method is not ("GET" or "HEAD" or "OPTIONS") &&
             !(c.User.Identity?.AuthenticationType == TestScheme && TestOwnersEnabled(c.RequestServices.GetRequiredService<IHostEnvironment>(), c.RequestServices.GetRequiredService<IConfiguration>())))
         {
             try { await c.RequestServices.GetRequiredService<IAntiforgery>().ValidateRequestAsync(c); }

@@ -122,6 +122,7 @@ export const api = {
       request<void>(`/api/v1/evidence/observations/${item.id}`, versioned(item.versionToken, { method: 'DELETE' }), true),
   },
   experience: {
+    get: (id: string) => request<ExperienceEntry>(`/api/v1/experience/entries/${id}`, undefined, true),
     listPage: (cursor?: string) => request<PageEnvelope<ExperienceEntry>>(pagePath('/api/v1/experience/entries/', { includeArchived: 'true' }, cursor), undefined, true),
     create: (body: Record<string, unknown>) =>
       request<ExperienceEntry>('/api/v1/experience/entries/', { method: 'POST', ...json(body) }, true),

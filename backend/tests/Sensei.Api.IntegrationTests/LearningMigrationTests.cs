@@ -34,14 +34,20 @@ public sealed class LearningMigrationTests(PostgreSqlFixture fixture)
         var concept = Concept.Create("legacy-concept", "Legacy concept", "Retained identity", "en", ConceptDifficulty.Intermediate, now);
         var observation = EvidenceObservation.Create(owner.Id, concept.Id, "Legacy observation", EvidenceSignalKind.Scenario, EvidenceSourceKind.Attempt, Guid.NewGuid(), AssistanceLevel.None, "Manual source label", now);
         var experience = ExperienceEntry.Create(owner.Id, new("Legacy experience", ExperienceSetting.PersonalProject, "Existing context", "Developer", "Implemented feature", "Compared alternatives", "Delivered", ImpactState.Qualitative, [concept.Id]), now);
-        db.AddRange(owner, concept, observation, experience);
+        db.AddRange(owner, concept, observation);
         await db.SaveChangesAsync();
+        // Seed through the historical transport: the current model includes columns added after InitialCreate.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO experience.entries (id, owner_id, is_archived, created_at, version) VALUES ({experience.Id}, {owner.Id}, false, {now}, 1)");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO experience.entry_revisions (entry_id, number, title, setting, context, role, actions, alternatives, outcome, impact_state, approval_state, created_at) VALUES ({experience.Id}, 1, 'Legacy experience', 'PersonalProject', 'Existing context', 'Developer', 'Implemented feature', 'Compared alternatives', 'Delivered', 'Qualitative', 'Draft', {now})");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO experience.entry_revision_concepts (entry_id, revision_number, concept_id) VALUES ({experience.Id}, 1, {concept.Id})");
         await migrator.MigrateAsync();
         db.ChangeTracker.Clear();
         Assert.Equal("Legacy concept", (await db.Set<Concept>().SingleAsync(x => x.Id == concept.Id)).Name);
         Assert.Equal("Legacy observation", (await db.Set<EvidenceObservation>().SingleAsync(x => x.Id == observation.Id)).Aspect);
         var preserved = await db.Set<ExperienceEntry>().Include(x => x.Revisions).SingleAsync(x => x.Id == experience.Id);
         Assert.Equal("Legacy experience", preserved.CurrentRevision.Title);
+        Assert.Equal("", preserved.CurrentRevision.Assistance);
+        Assert.Equal("", preserved.CurrentRevision.Uncertainty);
         Assert.Empty(await db.Set<KnowledgeContribution>().ToArrayAsync());
         Assert.Empty(await db.Set<KnowledgeState>().ToArrayAsync());
     }

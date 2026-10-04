@@ -24,6 +24,7 @@ async function fixtures(page: Page) {
   await page.route('**/health', route => route.fulfill({ json: { status: 'Healthy' } }))
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname.replace(/\/$/, '')
+    if (path.endsWith('/import')) return route.fulfill({ status: 404 })
     if (path === '/api/v1/learning/material-views') return route.fulfill({ status: 204 })
     if (route.request().method() !== 'GET') return route.fulfill({ status: 503, json: { detail: 'Could not save. Please retry.' } })
     const single: Record<string, unknown> = {

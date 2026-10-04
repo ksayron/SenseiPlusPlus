@@ -11,11 +11,11 @@ namespace Sensei.Modules.Experience.Api;
 
 public sealed record ExperienceRevisionRequest(
     string Title, ExperienceSetting Setting, string Context, string Role, string Actions,
-    string Alternatives, string Outcome, ImpactState ImpactState, IReadOnlyCollection<Guid> ConceptIds);
+    string Alternatives, string Outcome, ImpactState ImpactState, IReadOnlyCollection<Guid> ConceptIds, string Uncertainty = "", string Assistance = "");
 public sealed record ExperienceRevisionResource(
     int Number, string Title, ExperienceSetting Setting, string Context, string Role, string Actions,
     string Alternatives, string Outcome, ImpactState ImpactState, IReadOnlyCollection<Guid> ConceptIds,
-    RevisionApprovalState ApprovalState, DateTimeOffset CreatedAt, DateTimeOffset? ApprovedAt);
+    RevisionApprovalState ApprovalState, DateTimeOffset CreatedAt, DateTimeOffset? ApprovedAt, string Uncertainty = "", string Assistance = "");
 public sealed record ExperienceEntryResource(
     Guid Id, Guid OwnerId, bool IsArchived, DateTimeOffset CreatedAt, string VersionToken,
     IReadOnlyCollection<ExperienceRevisionResource> Revisions);
@@ -34,7 +34,7 @@ public static class ExperienceEndpoints
         {
             var entry = await service.CreateAsync(currentOwner.Id, new CreateExperienceEntryCommand(
                 request.Title, request.Setting, request.Context, request.Role, request.Actions,
-                request.Alternatives, request.Outcome, request.ImpactState, request.ConceptIds), cancellationToken);
+                request.Alternatives, request.Outcome, request.ImpactState, request.ConceptIds, request.Uncertainty, request.Assistance), cancellationToken);
             return HttpContract.CreatedVersioned(context.Response, $"/api/v1/experience/entries/{entry.Id}", Map(entry), entry.Version);
         })
         .WithName("CreateExperienceEntry")
@@ -73,7 +73,7 @@ public static class ExperienceEndpoints
             var entry = await service.ReviseAsync(currentOwner.Id, id, new ReviseExperienceEntryCommand(
                 request.Title, request.Setting, request.Context, request.Role, request.Actions,
                 request.Alternatives, request.Outcome, request.ImpactState, request.ConceptIds,
-                HttpContract.RequireVersion(ifMatch)), cancellationToken);
+                HttpContract.RequireVersion(ifMatch), request.Uncertainty, request.Assistance), cancellationToken);
             return entry is null ? HttpContract.NotFound(context) : HttpContract.OkVersioned(context.Response, Map(entry), entry.Version);
         })
         .WithName("ReviseExperienceEntry")
@@ -121,5 +121,5 @@ public static class ExperienceEndpoints
         entry.Revisions.Select(revision => new ExperienceRevisionResource(
             revision.Number, revision.Title, revision.Setting, revision.Context, revision.Role, revision.Actions,
             revision.Alternatives, revision.Outcome, revision.ImpactState, revision.ConceptIds,
-            revision.ApprovalState, revision.CreatedAt, revision.ApprovedAt)).ToArray());
+            revision.ApprovalState, revision.CreatedAt, revision.ApprovedAt, revision.Uncertainty, revision.Assistance)).ToArray());
 }
