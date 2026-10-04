@@ -6,7 +6,7 @@ Issue [#9](https://github.com/ksayron/SenseiPlusPlus/issues/9), implementation o
 
 The web workspace uses local email/password self-registration and ASP.NET Core Identity.
 Registration is available only in Development and Testing. Hosted registration, email
-verification, email recovery, OAuth/OIDC, native PKCE and organization roles remain separate work.
+verification, email recovery and organization roles remain separate work. Scoped native OpenID Connect/PKCE is implemented separately in [authenticated evidence import](21-authenticated-evidence-import.md); browser cookies remain the default.
 There is no SMTP or paid identity-service dependency.
 
 Credentials live in additive `identity.login_*` tables. The login account shares the existing

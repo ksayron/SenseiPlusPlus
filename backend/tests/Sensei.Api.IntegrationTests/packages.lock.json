@@ -1015,6 +1015,14 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "sensei-agent": {
+        "type": "Project",
+        "dependencies": {
+          "Sensei.LocalAgent.Core": "[1.0.0, )",
+          "Sensei.LocalAgent.Sync": "[1.0.0, )",
+          "Sensei.LocalAgent.Windows": "[1.0.0, )"
+        }
+      },
       "sensei.buildingblocks.api": {
         "type": "Project",
         "dependencies": {
@@ -1055,6 +1063,25 @@
           "Sensei.Modules.Learning.Infrastructure": "[1.0.0, )",
           "Sensei.Modules.WorkReflection.Api": "[1.0.0, )",
           "Sensei.Modules.WorkReflection.Infrastructure": "[1.0.0, )"
+        }
+      },
+      "sensei.localagent.core": {
+        "type": "Project"
+      },
+      "sensei.localagent.sync": {
+        "type": "Project",
+        "dependencies": {
+          "Microsoft.Extensions.Hosting": "[10.0.0, )",
+          "OpenIddict.Client.SystemIntegration": "[7.7.1, )",
+          "OpenIddict.Client.SystemNetHttp": "[7.7.1, )",
+          "Sensei.Client.Contracts": "[1.0.0, )",
+          "Sensei.LocalAgent.Core": "[1.0.0, )"
+        }
+      },
+      "sensei.localagent.windows": {
+        "type": "Project",
+        "dependencies": {
+          "Sensei.LocalAgent.Core": "[1.0.0, )"
         }
       },
       "sensei.modules.evidence.api": {
