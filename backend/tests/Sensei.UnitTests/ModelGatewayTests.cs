@@ -7,6 +7,42 @@ namespace Sensei.UnitTests;
 
 public sealed class ModelGatewayTests
 {
+    [Theory]
+    [InlineData("sk-or-v1-SyntheticCredential123456")]
+    [InlineData("ghp_SyntheticCredential123456")]
+    [InlineData("-----BEGIN PRIVATE KEY-----")]
+    public async Task Recognized_credentials_never_leave_in_prompts(string secret)
+    {
+        var handler = new Handler((_, _) => throw new Exception("Must not call HTTP"));
+        using var gateway = new OpenRouterModelGateway(Route, () => "configured-secret", handler);
+        Assert.Equal(ModelFailure.Configuration, (await gateway.CompleteAsync(Request with { Input = secret })).Failure);
+        Assert.Equal(ModelFailure.Configuration, (await gateway.CompleteAsync(Request with { SystemPrompt = secret })).Failure);
+        Assert.Equal(0, handler.Calls);
+    }
+
+    [Fact]
+    public async Task Configured_key_cannot_enter_a_prompt_or_a_successful_output_even_when_json_escaped()
+    {
+        const string key = "configured-private-key";
+        var blocked = new Handler((_, _) => throw new Exception("Must not call HTTP"));
+        using (var gateway = new OpenRouterModelGateway(Route, () => key, blocked))
+            Assert.Equal(ModelFailure.Configuration, (await gateway.CompleteAsync(Request with { Input = "public " + key })).Failure);
+        Assert.Equal(0, blocked.Calls);
+        var handler = new Handler((message, _) => Task.FromResult(Response(message.Method == HttpMethod.Get ? Metadata() :
+            Completion("{\"text\":\"configured-private-\\u006bey\"}"))));
+        using var exposed = new OpenRouterModelGateway(Route, () => key, handler);
+        var result = await exposed.CompleteAsync(Request with { Contract = new TextContract() });
+        Assert.Equal(ModelFailure.InvalidOutput, result.Failure); Assert.Null(result.Output);
+        Assert.DoesNotContain(key, result.ToString()); Assert.Equal(2, handler.Calls);
+    }
+
+    private sealed class TextContract : IModelOutputContract
+    {
+        public string Name => "text_result";
+        public string Version => "v1";
+        public JsonElement Schema => Json("""{"type":"object","properties":{"text":{"type":"string"}},"required":["text"],"additionalProperties":false}""");
+        public bool Accepts(JsonElement output) => output.GetProperty("text").ValueKind == JsonValueKind.String;
+    }
     private static JsonElement Json(string json) => JsonDocument.Parse(json).RootElement.Clone();
     private static readonly ModelRoute Route = new("test-route-v1", "example/model:free", "example/endpoint", "Example",
         ModelOutputMode.StrictJsonSchema, new("https://example.test/privacy"), DateTimeOffset.UtcNow);

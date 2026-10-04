@@ -80,7 +80,7 @@ public sealed class ExerciseConcept
 }
 public static class ContentValidation
 {
-    public static bool SafeUrl(string? url) => url is not null && Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == "https";
+    public static bool SafeUrl(string? url) => url is not null && Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == "https" && uri.UserInfo.Length == 0;
     public static void Blocks(IEnumerable<ContentBlock> blocks)
     {
         foreach (var b in blocks)

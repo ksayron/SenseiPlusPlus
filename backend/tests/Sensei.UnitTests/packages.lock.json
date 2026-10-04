@@ -114,9 +114,6 @@
       "sensei.buildingblocks.application": {
         "type": "Project"
       },
-      "sensei.buildingblocks.application": {
-        "type": "Project"
-      },
       "sensei.modules.evidence.domain": {
         "type": "Project"
       },

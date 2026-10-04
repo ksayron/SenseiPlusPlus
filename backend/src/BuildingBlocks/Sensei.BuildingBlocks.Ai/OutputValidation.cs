@@ -7,7 +7,7 @@ internal static class OutputValidation
 {
     public static bool Accepts(IModelOutputContract contract, JsonElement output)
     {
-        try { return output.ValueKind == JsonValueKind.Object && UniqueNames(output) && contract.Accepts(output); }
+        try { return output.ValueKind == JsonValueKind.Object && !SecretBoundary.ContainsSecret(output) && UniqueNames(output) && contract.Accepts(output); }
         catch (Exception error) when (error is JsonException or InvalidOperationException or ArgumentException or KeyNotFoundException)
         { return false; }
     }

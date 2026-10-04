@@ -50,6 +50,8 @@ public sealed class OpenRouterModelGateway : IModelGateway, IDisposable
         try { key = apiKey(); }
         catch { return Failed(ModelFailure.Configuration); }
         if (string.IsNullOrWhiteSpace(key) || key.Any(char.IsControl)) return Failed(ModelFailure.Configuration);
+        if (SecretBoundary.Contains(request.Input, key) || SecretBoundary.Contains(request.WireSystemPrompt, key) ||
+            SecretBoundary.ContainsSecret(request.Contract.Schema, key)) return Failed(ModelFailure.Configuration);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(route.TimeoutSeconds), clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         var entered = false;
@@ -122,7 +124,7 @@ public sealed class OpenRouterModelGateway : IModelGateway, IDisposable
             if (!message.TryGetProperty("content", out var content) || content.ValueKind != JsonValueKind.String ||
                 string.IsNullOrWhiteSpace(content.GetString())) return Failed(ModelFailure.Refused);
             using var output = JsonDocument.Parse(content.GetString()!, new() { MaxDepth = 16 });
-            if (!OutputValidation.Accepts(request.Contract, output.RootElement)) return Failed(ModelFailure.InvalidOutput);
+            if (SecretBoundary.ContainsSecret(output.RootElement, key) || !OutputValidation.Accepts(request.Contract, output.RootElement)) return Failed(ModelFailure.InvalidOutput);
             return new(output.RootElement.Clone(), null, audit with { Elapsed = stopwatch.Elapsed });
         }
         catch (OperationCanceledException)

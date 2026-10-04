@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { safeExternalUrl } from "../lib/safeExternalUrl";
 import { Button } from "../components/ui/button";
 import { all, read, send } from "./api";
 import { assessmentUi as ui } from "./uiMessages";
@@ -82,7 +83,7 @@ export function OptionalAssessment({ attemptId }: { attemptId: string }) {
         <h5>{ui.review}</h5>
         <p>{ui.recipients(preview.disclosure.provider, preview.disclosure.model)}</p>
         {preview.disclosure.origin === "Fixture" && <p><strong>{ui.fixtureNotice}</strong></p>}
-        <p><a href={preview.disclosure.routerPrivacyPolicy} target="_blank" rel="noreferrer">{ui.routerPrivacy}</a> · <a href={preview.disclosure.providerPrivacyPolicy} target="_blank" rel="noreferrer">{ui.providerPrivacy}</a></p>
+        <p><a href={safeExternalUrl(preview.disclosure.routerPrivacyPolicy)} target="_blank" rel="noreferrer">{ui.routerPrivacy}</a> · <a href={safeExternalUrl(preview.disclosure.providerPrivacyPolicy)} target="_blank" rel="noreferrer">{ui.providerPrivacy}</a></p>
         <details><summary>{ui.details}</summary>
           <h5>{ui.prompt}</h5><pre>{preview.disclosure.systemPrompt}</pre>
           <h5>{ui.input}</h5><pre>{JSON.stringify(preview.disclosure.input, null, 2)}</pre>

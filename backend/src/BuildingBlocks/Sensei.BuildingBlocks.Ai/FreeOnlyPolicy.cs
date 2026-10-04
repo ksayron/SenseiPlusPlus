@@ -33,7 +33,9 @@ public static partial class FreeOnlyPolicy
             return ModelFailure.Configuration;
         // Conservative byte upper bound, including prompt/schema overhead. Never silently truncate.
         var inputBytes = request.ConservativeInputBytes;
-        return inputBytes > route.MaxInputBytes ? ModelFailure.Configuration : null;
+        return inputBytes > route.MaxInputBytes || SecretBoundary.ContainsRecognizedSecret(request.Input) ||
+            SecretBoundary.ContainsRecognizedSecret(request.WireSystemPrompt) || SecretBoundary.ContainsSecret(request.Contract.Schema)
+            ? ModelFailure.Configuration : null;
     }
 
     public static ModelFailure? Prices(JsonElement pricing)

@@ -1,4 +1,5 @@
 using Sensei.Host.Authentication;
+using Sensei.Host.Security;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,13 @@ using Sensei.Modules.WorkReflection.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.AddProvider(new PrivateConsoleLoggerProvider(Console.Out));
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+    options.Limits.MaxRequestBodySize = RequestSecurity.MaximumBodyBytes;
+});
+builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
 
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
 {
@@ -172,25 +179,15 @@ builder.Services.AddSenseiAuthentication(builder.Environment, builder.Configurat
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    var started = System.Diagnostics.Stopwatch.GetTimestamp();
-    await next(context);
-    if (context.Request.Path.StartsWithSegments("/api/v1/learning"))
-    {
-        LearningDiagnostics.RequestDuration.Record(System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
-        if (context.Response.StatusCode is 409 or 412) LearningDiagnostics.Conflicts.Add(1);
-        app.Logger.LogInformation("Learning request {Method} {Path} returned {Status} in {ElapsedMs}ms; trace {TraceId}",
-            context.Request.Method, context.Request.Path, context.Response.StatusCode,
-            System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds, context.TraceIdentifier);
-    }
-});
+app.Use(RequestSecurity.HeadersAndDiagnostics);
 
 app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
 {
     var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
     var (code, status, title) = exception switch
     {
+        BadHttpRequestException { StatusCode: 413 } => ("request_too_large", StatusCodes.Status413PayloadTooLarge, "Request too large"),
+        BadHttpRequestException => ("validation_failed", StatusCodes.Status400BadRequest, "Validation failed"),
         ApiContractException api => (api.Code, api.StatusCode, api.Title),
         ArgumentException => ("validation_failed", StatusCodes.Status400BadRequest, "Validation failed"),
         ResourceNotFoundException => ("resource_not_found", StatusCodes.Status404NotFound, "Resource not found"),
@@ -206,7 +203,7 @@ app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
         code,
         status,
         title,
-        status == StatusCodes.Status500InternalServerError ? null : exception?.Message)
+        SafeExceptionDetail(exception))
         .ExecuteAsync(context);
 }));
 
@@ -242,6 +239,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
 app.Use(AuthenticationSetup.ValidateCsrf);
+app.Use(RequestSecurity.BoundBody);
 app.MapSenseiAuthentication();
 
 app.MapIdentityEndpoints();
@@ -264,6 +262,21 @@ if (args.Contains("--recover-local-account", StringComparer.Ordinal))
 }
 
 app.Run();
+
+static string? SafeExceptionDetail(Exception? error) => error switch
+{
+    // ApiContractException is an explicit, constant-message HTTP contract, never a raw parser/provider error.
+    ApiContractException api => api.Message,
+    BadHttpRequestException { StatusCode: 413 } => "API request bodies are limited to 256 KiB.",
+    BadHttpRequestException => "The request does not match the API contract.",
+    ArgumentException => "Check the supplied values against the API contract.",
+    ResourceNotFoundException => "The requested resource does not exist or is outside the current owner scope.",
+    DuplicateResourceException => "A resource with the same unique value already exists.",
+    ResourceInUseException => "The operation would break an existing resource relationship.",
+    ConcurrencyConflictException => "The resource changed after it was loaded. Reload it and retry.",
+    InvalidOperationException => "The operation is not allowed in the resource's current state.",
+    _ => null
+};
 
 public partial class Program;
 

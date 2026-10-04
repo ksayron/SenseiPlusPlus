@@ -19,24 +19,26 @@ public sealed class PostgreSqlCollection : ICollectionFixture<PostgreSqlFixture>
 
 public sealed class PostgreSqlFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:18-alpine")
-        .WithDatabase("sensei_tests")
-        .WithUsername("sensei")
-        .WithPassword("sensei_tests")
-        .Build();
+    private readonly string? externalConnection = Environment.GetEnvironmentVariable("SENSEI_TEST_POSTGRES");
+    private PostgreSqlContainer? _container;
 
-    public string ConnectionString => _container.GetConnectionString();
+    public string ConnectionString => externalConnection ?? _container!.GetConnectionString();
 
     public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        if (externalConnection is null)
+        {
+            _container = new PostgreSqlBuilder("postgres:18-alpine").WithDatabase("sensei_tests")
+                .WithUsername("sensei").WithPassword("sensei_tests").Build();
+            await _container.StartAsync();
+        }
         using var factory = CreateFactory();
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SenseiDbContext>();
         await dbContext.Database.MigrateAsync();
     }
 
-    public Task DisposeAsync() => _container.DisposeAsync().AsTask();
+    public Task DisposeAsync() => _container?.DisposeAsync().AsTask() ?? Task.CompletedTask;
 
     public SenseiWebApplicationFactory CreateFactory() => new(ConnectionString);
 }

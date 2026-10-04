@@ -47,7 +47,7 @@ export async function request<T>(path: string, init?: RequestInit, ownerScoped =
   const headers = new Headers(init?.headers)
   if (init?.body) headers.set('Content-Type', 'application/json')
   const requestOwner = ownerScoped ? getOwnerId() : null
-  if (accountId && (!path.startsWith('/api/v1/auth/') || path.endsWith('/logout'))) headers.set('X-Expected-Owner', accountId)
+  if (accountId && (ownerScoped || !path.startsWith('/api/v1/auth/') || path.endsWith('/logout'))) headers.set('X-Expected-Owner', accountId)
   if (init?.method && !['GET', 'HEAD', 'OPTIONS'].includes(init.method.toUpperCase())) headers.set('X-CSRF-Token', await securityToken())
   if (requestOwner && requestOwner !== getOwnerId()) throw new ApiError('Account changed. Reload this page.', 409)
 

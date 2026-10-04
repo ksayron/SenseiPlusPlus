@@ -92,7 +92,16 @@ public static class AuthenticationEndpoints
             [new Claim(AuthenticationSetup.AuthTimeClaim, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture))]);
     private static AccountSession Map(UserAccount p) => new(p.Id, p.Email, p.DisplayName, p.UiLocale, p.AnswerLanguage, p.TimeZone);
     private static IResult IdentityFailure(HttpContext c, IdentityResult result) =>
-        HttpContract.Problem(c, "validation_failed", 400, "Account cannot be registered", string.Join(" ", result.Errors.Select(x => x.Description)));
+        HttpContract.Problem(c, "validation_failed", 400, "Account cannot be registered", string.Join(" ", result.Errors.Select(x => x.Code switch
+        {
+            "PasswordTooShort" => "Use at least 12 password characters.",
+            "PasswordRequiresNonAlphanumeric" => "Include a non-alphanumeric password character.",
+            "PasswordRequiresDigit" => "Include a password digit.",
+            "PasswordRequiresLower" => "Include a lowercase password character.",
+            "PasswordRequiresUpper" => "Include an uppercase password character.",
+            "PasswordRequiresUniqueChars" => "Use more distinct password characters.",
+            _ => "Account details could not be accepted."
+        }).Distinct()));
     private static void ValidateCredentials(string email, string password)
     {
         if (string.IsNullOrWhiteSpace(email) || email.Length > 256 || !System.Net.Mail.MailAddress.TryCreate(email, out var address) || address.Address != email.Trim())
