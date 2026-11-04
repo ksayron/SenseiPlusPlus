@@ -13,6 +13,9 @@
 .agent-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .agent-connection-list header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .agent-connection-list h2 { margin: 0; }
+.connection-date, .connection-boundary { color: var(--muted-foreground); font-size: .875rem; }
+.connection-boundary { padding: .75rem 1rem; background: var(--muted); border-radius: 12px; }
+.agent-connection-list strong, .agent-connection-list a { overflow-wrap: anywhere; }
 .imported-contribution { padding: 14px; margin: 16px 0; background: var(--muted); border-radius: 12px; font-size: 13px; }
 .imported-contribution summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; font-weight: 600; }
 .imported-contribution summary span { margin-left: auto; color: var(--muted-foreground); }

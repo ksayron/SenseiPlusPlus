@@ -40,3 +40,20 @@ Logs and TRX evidence are in `.tmp/git-organization/`; the pre-organization bund
 These commits establish reviewable technical increments, not full issue completion. GitHub CI/PR review have not run. Live AI configuration, provider quality and rubric review remain deferred. Human system-browser launch/consent and physical-device/accessibility checks remain unverified. #27/#33/#34 retain their broader dependency and milestone gates; no issues were closed or relabeled. No mobile code was changed.
 
 `docs/Лист_Задания_Кучерук.docx` remains an unchanged, untracked personal document in the primary workspace and is excluded from feature commits.
+
+## Remote delivery — 4 November 2026
+
+The owner authorized publishing the tested local application stack and closing completed
+issues after reporting that configured external sign-in works. The integration delivery adds
+Google/GitHub sign-in, connected profiles, literal root `.env` launch/migration support and the
+return-navigation regression fixes to the existing authentication, gateway, assessment,
+security, import and agent commits. The separate context-snapshot branch remains independent.
+
+The delivery closes #9 (authenticated ownership), #11 (immutable/retry-safe attempts) and
+#33 (sanitized idempotent event imports). Wider AI qualification, reviewed rubrics, security
+work for future dispute/export surfaces and full reflection/IDE/native workflows remain in
+their original issues. This does not claim those tracks complete.
+
+Current local evidence is 60 backend unit, 4 architecture, 90 PostgreSQL integration, 24 client
+and 52 desktop/narrow browser checks, plus a zero-warning Release build and locked restore.
+See `22-external-authentication.md` for the manual acceptance boundary and exact artifacts.

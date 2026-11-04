@@ -10,6 +10,7 @@ The Phase 1 learning subsystem is specified in the [learning system design](docs
 [learner experience](docs/10-learning-experience.md), and [delivery plan](docs/11-learning-delivery-plan.md).
 The AI-independent local runtime is implemented; see the [implementation and verification record](docs/13-learning-implementation.md).
 The workspace now uses [local email/password authentication](docs/16-local-authentication.md).
+Optional [Google/GitHub sign-in and connected profiles](docs/22-external-authentication.md) share the same account and require provider configuration.
 The [original learning specification](docs/inputs/learning-system-specification.md) is preserved unchanged.
 
 The optional [free-only AI gateway](docs/17-free-only-ai-gateway.md) has offline adapters and pilot tooling. AI configuration and live provider review are deferred; core learning does not call it.

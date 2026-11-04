@@ -43,7 +43,7 @@ public sealed class PostgreSqlFixture : IAsyncLifetime
     public SenseiWebApplicationFactory CreateFactory() => new(ConnectionString);
 }
 
-public sealed class SenseiWebApplicationFactory(string connectionString, bool testOwners = true) : WebApplicationFactory<Program>
+public class SenseiWebApplicationFactory(string connectionString, bool testOwners = true) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

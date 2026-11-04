@@ -108,7 +108,8 @@ builder.Services.AddOpenApi("v1", options =>
     {
         var op = entry.Value;
         var agentEndpoint = path.Key.StartsWith("/api/v1/agent/", StringComparison.Ordinal) || path.Key.StartsWith("/api/v1/experience/imports", StringComparison.Ordinal);
-        var anonymous = path.Key is "/" or "/health" or "/api/v1/auth/csrf" or "/api/v1/auth/login" or "/api/v1/auth/register";
+        var anonymous = path.Key is "/" or "/health" or "/api/v1/auth/csrf" or "/api/v1/auth/login" or "/api/v1/auth/register" or "/api/v1/auth/providers" or "/api/v1/auth/external/challenge" or "/api/v1/auth/external/complete" ||
+            path.Key.StartsWith("/api/v1/auth/external/", StringComparison.Ordinal) && path.Key.EndsWith("/start", StringComparison.Ordinal);
         if (!anonymous)
         {
             op.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference(agentEndpoint ? "AgentBearer" : "SessionCookie", document)] = [] }];
@@ -247,6 +248,16 @@ app.Use(async (c, next) =>
     if (c.Request.Path.StartsWithSegments("/connect")) await AgentOAuth.SeedClient(c.RequestServices);
     await next(c);
 });
+app.Use(async (c, next) =>
+{
+    if (c.Request.Path.StartsWithSegments("/api/v1/auth/external") || c.Request.Path is { Value: "/signin-google" or "/signin-github" })
+    {
+        c.Response.Headers.CacheControl = "no-store";
+        if (ExternalProviders.Names.Any(x => ExternalProviders.Enabled(c, x)) && !ExternalProviders.OriginMatches(c))
+        { await HttpContract.Problem(c, "external_origin_mismatch", 400, "Open the configured authentication origin").ExecuteAsync(c); return; }
+    }
+    await next(c);
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -265,6 +276,7 @@ app.Use(async (c, next) =>
 app.Use(AuthenticationSetup.ValidateCsrf);
 app.Use(RequestSecurity.BoundBody);
 app.MapSenseiAuthentication();
+app.MapExternalAuthentication();
 app.MapAgentOAuth();
 app.MapProfessionalImports();
 

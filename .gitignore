@@ -11,3 +11,6 @@
 *.suo
 client/test-results/
 client/playwright-report/
+
+# Local Obsidian knowledge base, personal planning, and manual QA evidence.
+KnowledgeBase_Sensei/

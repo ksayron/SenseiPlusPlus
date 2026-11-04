@@ -14,6 +14,7 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 - API health state, Problem Details messages, loading/empty states, and optimistic-concurrency versions.
 - Complete Phase 1 topic/practice/session/goal/coverage flows with all six exercise formats, durable commands, acknowledged drafts and evidence history; see the [implementation record](../docs/13-learning-implementation.md).
 - Local email/password registration and sign-in, an HttpOnly session cookie, antiforgery-protected mutations, and account-isolated workspace state.
+- Optional Google/GitHub sign-in, connected-profile management, and password/provider confirmation. See [provider setup](../docs/22-external-authentication.md); providers default to disabled.
 
 See [local authentication and recovery](../docs/16-local-authentication.md). Existing development profiles receive no default password; use the documented interactive recovery command to access their preserved data. Hosted sign-up and recovery policy remain separate work.
 
@@ -58,6 +59,14 @@ VITE_API_BASE_URL=https://api.example.test
 ```
 
 The default empty base URL is correct for the development proxy and for a same-origin deployment.
+
+For local Google/GitHub sign-in, edit the root ignored `.env` and start each service from
+the repository root with `pwsh -File scripts/Start-Local.ps1 -Service Backend` and
+`pwsh -File scripts/Start-Local.ps1 -Service Client` in separate terminals. The launcher
+loads the file, uses HTTPS and proxies provider callbacks to the backend. Trust the development
+certificate once with `dotnet dev-certs https --trust`, then open `https://localhost:5173/`.
+See [provider setup](../docs/22-external-authentication.md). Credentials use server environment
+keys without the `VITE_` prefix, so Vite does not expose them to the browser bundle.
 
 ## Verify
 

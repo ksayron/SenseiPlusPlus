@@ -46,7 +46,7 @@ public static class AuthenticationSetup
         {
             o.Cookie.Name = "sensei.session";
             o.Cookie.HttpOnly = true;
-            o.Cookie.SameSite = SameSiteMode.Strict;
+            o.Cookie.SameSite = SameSiteMode.Lax;
             o.Cookie.SecurePolicy = env.IsDevelopment() || env.IsEnvironment("Testing") ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
             o.ExpireTimeSpan = TimeSpan.FromHours(8);
             o.SlidingExpiration = false;
@@ -54,7 +54,15 @@ public static class AuthenticationSetup
             o.Events.OnRedirectToLogin = c => HttpContract.Problem(c.HttpContext, "authentication_required", 401, "Sign in required").ExecuteAsync(c.HttpContext);
             o.Events.OnRedirectToAccessDenied = c => HttpContract.Problem(c.HttpContext, "access_denied", 403, "Access denied").ExecuteAsync(c.HttpContext);
         });
-        auth.AddCookie(IdentityConstants.ExternalScheme);
+        auth.AddCookie(IdentityConstants.ExternalScheme, o =>
+        {
+            o.Cookie.Name = "sensei.external";
+            o.Cookie.HttpOnly = true;
+            o.Cookie.SameSite = SameSiteMode.Lax;
+            o.Cookie.SecurePolicy = env.IsDevelopment() || env.IsEnvironment("Testing") ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+            o.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+        });
+        auth.AddSenseiExternalProviders(env, config);
         auth.AddCookie(IdentityConstants.TwoFactorUserIdScheme);
         auth.AddCookie(IdentityConstants.TwoFactorRememberMeScheme);
         services.Configure<SecurityStampValidatorOptions>(o =>

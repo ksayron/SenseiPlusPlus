@@ -6,13 +6,8 @@ import { Button } from '../components/ui/button'
 import { loadAppearance, setAppearance } from '../theme/appearance'
 import './auth.css'
 import { AccountContext, useAccount, type Account } from './AccountContext'
-
-const notifyAccounts = () => {
-  if (typeof BroadcastChannel === 'undefined') return
-  const channel = new BroadcastChannel('sensei-account')
-  channel.postMessage('changed')
-  channel.close()
-}
+import { notifyAccounts } from './external'
+import { ProviderSignIn } from './ExternalAuthentication'
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account | null>(null)
@@ -75,6 +70,7 @@ function SignInForm({ onSignedIn }: { onSignedIn: (account: Account) => void }) 
     <header className="auth-header"><Link className="brand" to="/"><span className="brand-mark">S<span>++</span></span><span className="brand-name">Sensei<span>++</span></span></Link><Button variant="ghost" aria-label="Night appearance" aria-pressed={appearance === 'coastal-night'} onClick={() => { const next = appearance === 'coastal' ? 'coastal-night' : 'coastal'; setAppearance(next); updateAppearance(next) }}>{appearance === 'coastal' ? <Moon size={18} /> : <Sun size={18} />} {appearance === 'coastal' ? 'Night' : 'Day'}</Button></header>
     <div className="auth-layout"><section className="auth-intro"><p className="eyebrow">Your learning workspace</p><h1>Keep what you learn.<br />Build on what you know.</h1><p>Practice an idea, save your reasoning, and return with a clearer understanding.</p><div className="auth-note"><BookOpen size={24} /><p>Small sessions.<br /><strong>A history that stays yours.</strong></p></div><Link className="library-link" to="/dev-roadmap">Explore the build journal <ArrowRight size={16} /></Link></section>
     <section className="auth-form-panel" aria-labelledby="auth-title"><p className="eyebrow">{register ? 'A fresh start' : 'Welcome back'}</p><h2 id="auth-title">{register ? 'Create your account' : 'Sign in to Sensei++'}</h2><p>{register ? 'Set up an account on this installation.' : 'Continue your practice and saved reflections.'}</p>
+      <ProviderSignIn disabled={busy} />
       <form className="editor-form" onSubmit={submit}>
         {register && <label className="field"><span>Display name</span><input name="displayName" autoComplete="name" maxLength={200} required disabled={busy} /></label>}
         <label className="field"><span>Email</span><input name="email" type="email" autoComplete="username" maxLength={256} required disabled={busy} /></label>

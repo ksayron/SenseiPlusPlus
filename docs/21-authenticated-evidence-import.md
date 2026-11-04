@@ -46,7 +46,7 @@ OpenIddict's client integration launches the system browser and listens on a dyn
 
 Permissions are limited to identity/profile, offline access, concept lookup, import and receipt lookup. CLI bearer credentials cannot use ordinary cookie APIs, approve experience or change evidence status. Five-minute access tokens and rotating refresh credentials are protected by DPAPI CurrentUser. Grants expire absolutely after thirty days; refresh does not extend that deadline. API calls check token/authorization status and the account security stamp, so password recovery invalidates the connection.
 
-Use the web **Connections** page to inspect and revoke grants. Revocation requires account password confirmation. `agent auth logout` clears local credentials even if remote revocation fails; it reports that failure so the grant can be revoked on the web. Local logout does not delete queued submissions.
+Use the web **Connections** page to inspect and revoke grants. Revocation requires recent password or linked-provider confirmation; see [external authentication](22-external-authentication.md). `agent auth logout` clears local credentials even if remote revocation fails; it reports that failure so the grant can be revoked on the web. Local logout does not delete queued submissions.
 
 ## Review and queue
 

@@ -790,6 +790,300 @@
         ]
       }
     },
+    "/api/v1/auth/providers": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "GetExternalProviders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExternalProviderView"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/methods": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "GetAuthenticationMethods",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationMethods"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in required"
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/external/{provider}/start": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Start anonymous sign-in, or authenticated linking/profile refresh/provider confirmation. Linking requires recent authentication. Returns a local challenge URL.",
+        "operationId": "StartExternalAuthentication",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartExternalAuthentication"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalAuthenticationRedirect"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/external/challenge": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "ChallengeExternalAuthentication",
+        "parameters": [
+          {
+            "name": "flow",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Found"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/external/complete": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "CompleteExternalAuthentication",
+        "responses": {
+          "302": {
+            "description": "Found"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/external/{provider}/disconnect": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "DisconnectExternalProvider",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Request token from /api/v1/auth/csrf for the current sign-in state.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SessionCookie": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/identity/users": {
       "post": {
         "tags": [
@@ -6979,6 +7273,24 @@
           }
         }
       },
+      "AuthenticationMethods": {
+        "required": [
+          "hasPassword",
+          "profiles"
+        ],
+        "type": "object",
+        "properties": {
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectedProfileView"
+            }
+          }
+        }
+      },
       "CancelAssessment": {
         "required": [
           "operationId"
@@ -7087,6 +7399,45 @@
           },
           "versionToken": {
             "type": "string"
+          }
+        }
+      },
+      "ConnectedProfileView": {
+        "required": [
+          "provider",
+          "displayName",
+          "username",
+          "profileUrl",
+          "connectedAt",
+          "refreshedAt",
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "profileUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "connectedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "enabled": {
+            "type": "boolean"
           }
         }
       },
@@ -7652,6 +8003,32 @@
           "PersonalProject",
           "Other"
         ]
+      },
+      "ExternalAuthenticationRedirect": {
+        "required": [
+          "redirect"
+        ],
+        "type": "object",
+        "properties": {
+          "redirect": {
+            "type": "string"
+          }
+        }
+      },
+      "ExternalProviderView": {
+        "required": [
+          "provider",
+          "displayName"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        }
       },
       "Feedback": {
         "required": [
@@ -9215,6 +9592,23 @@
               }
             ],
             "format": "int32"
+          }
+        }
+      },
+      "StartExternalAuthentication": {
+        "type": "object",
+        "properties": {
+          "purpose": {
+            "type": "string",
+            "default": "signin"
+          },
+          "returnPath": {
+            "type": "string",
+            "default": "/"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "UTC"
           }
         }
       },

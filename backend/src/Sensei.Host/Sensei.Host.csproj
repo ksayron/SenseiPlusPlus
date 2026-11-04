@@ -4,11 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>SenseiPlusPlus-Host</UserSecretsId>
     <OpenApiDocumentsDirectory>../../../docs/api</OpenApiDocumentsDirectory>
     <OpenApiGenerateDocumentsOptions>--document-name v1 --file-name openapi-v1 --openapi-version OpenApi3_0</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />
     <PackageReference Include="OpenIddict.AspNetCore" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" />
     <ProjectReference Include="../../../shared/Sensei.Client.Contracts/Sensei.Client.Contracts.csproj" />

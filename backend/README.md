@@ -90,6 +90,15 @@ Fetch `/api/v1/auth/csrf` and send its token as `X-CSRF-Token` on every API muta
 Local registration, sign-in, and existing-profile recovery are documented in
 [local authentication](../docs/16-local-authentication.md). Apply the additive
 `LocalAuthentication` migration before running this version; existing data is preserved.
+Optional Google/GitHub sign-in additionally requires the `ExternalSignInProfiles` migration and
+[provider configuration](../docs/22-external-authentication.md). Providers default to disabled;
+their tokens are transient and connected GitHub metadata does not establish work evidence.
+
+For local OAuth development, edit the ignored root `.env` using `.env.example` as a template
+and run `pwsh -File scripts/Start-Local.ps1 -Service Backend` from the repository root.
+The launcher loads the root file, selects Development and derives the PostgreSQL connection
+from `SENSEI_POSTGRES_*` unless an explicit `ConnectionStrings__Sensei` is set.
+Direct `dotnet run` does not read `.env`.
 
 Updates require a strong `If-Match` header using the resource's ETag. Resources also expose
 an opaque `versionToken`. Missing preconditions return `428`, malformed tokens `400`, and

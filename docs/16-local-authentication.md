@@ -5,6 +5,7 @@ Issue [#9](https://github.com/ksayron/SenseiPlusPlus/issues/9), implementation o
 ## Account behavior
 
 The web workspace uses local email/password self-registration and ASP.NET Core Identity.
+Optional Google/GitHub sign-in and connected profiles are documented in [external authentication](22-external-authentication.md).
 Registration is available only in Development and Testing. Hosted registration, email
 verification, email recovery and organization roles remain separate work. Scoped native OpenID Connect/PKCE is implemented separately in [authenticated evidence import](21-authenticated-evidence-import.md); browser cookies remain the default.
 There is no SMTP or paid identity-service dependency.
@@ -17,7 +18,7 @@ registration and password confirmation have an IP-scoped request limit (200/minu
 20/minute outside Development/Testing). Passwords and request bodies are not logged.
 
 The browser receives an eight-hour, nonpersistent HttpOnly `sensei.session` cookie with
-SameSite=Strict. HTTPS requests receive Secure cookies; outside Development/Testing, Secure is
+SameSite=Lax for external-provider GET callbacks (changed on 4 October 2026). HTTPS requests receive Secure cookies; outside Development/Testing, Secure is
 mandatory. Identity security stamps are checked on every request, so local credential recovery
 revokes existing cookies. Cookie renewal does not extend the original session expiry.
 
@@ -39,7 +40,7 @@ cross-module account-deletion workflow (#26).
 - `GET /api/v1/auth/me` returns the current profile, without credentials.
 - `POST /api/v1/auth/logout` clears the browser session.
 - `POST /api/v1/auth/reauthenticate` checks the current account password and refreshes its signed authentication timestamp.
-- `GET /api/v1/auth/reauthentication` requires a password-confirmed session from the preceding five minutes. Future export/deletion endpoints must apply the `RecentAuthentication` policy.
+- `GET /api/v1/auth/reauthentication` requires sign-in/password/provider confirmation from the preceding five minutes. Future export/deletion endpoints must apply the `RecentAuthentication` policy.
 
 Send `X-CSRF-Token` on every state-changing API request, including login and registration.
 Fetch a new token after the sign-in identity changes. An invalid token returns 400

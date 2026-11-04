@@ -41,6 +41,7 @@ internal sealed class LoginProviderMapping : IEntityTypeConfiguration<IdentityUs
     {
         b.ToTable("login_providers", "identity"); b.HasKey(x => new { x.LoginProvider, x.ProviderKey });
         b.Property(x => x.LoginProvider).HasMaxLength(128); b.Property(x => x.ProviderKey).HasMaxLength(128);
+        b.HasIndex(x => new { x.UserId, x.LoginProvider }).IsUnique();
         b.HasOne<LoginAccount>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }

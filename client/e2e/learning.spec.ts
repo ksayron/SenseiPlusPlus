@@ -336,17 +336,17 @@ test("owner switching removes the previous owner session and ignores pending res
   page,
   request,
 }) => {
-  await prepare(page, request, "Prediction");
+  const { session } = await prepare(page, request, "Prediction");
   await page
     .getByRole("textbox", {
       name: "Your reasoning — saved, not automatically assessed",
     })
     .fill("Private prior-owner note");
   await owner(request, page);
+  const denied = page.waitForResponse(response => response.url().endsWith(`/api/v1/learning/sessions/${session.id}`) && response.status() === 404);
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
-  await expect(
-    page.getByText("Resource not found", { exact: false }),
-  ).toBeVisible();
+  expect((await (await denied).json()).code).toBe('resource_not_found');
+  await expect(page.getByRole('alert')).toBeVisible();
   await expect(
     page.getByRole("textbox", {
       name: "Your reasoning — saved, not automatically assessed",

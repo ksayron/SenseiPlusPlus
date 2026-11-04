@@ -87,7 +87,7 @@ public static class AuthenticationEndpoints
         g.MapGet("/reauthentication", () => Results.NoContent()).RequireAuthorization(AuthenticationSetup.RecentPolicy).WithName("CheckRecentAuthentication");
     }
 
-    private static Task SignIn(SignInManager<LoginAccount> signIn, LoginAccount account) =>
+    internal static Task SignIn(SignInManager<LoginAccount> signIn, LoginAccount account) =>
         signIn.SignInWithClaimsAsync(account, isPersistent: false,
             [new Claim(AuthenticationSetup.AuthTimeClaim, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture))]);
     private static AccountSession Map(UserAccount p) => new(p.Id, p.Email, p.DisplayName, p.UiLocale, p.AnswerLanguage, p.TimeZone);
