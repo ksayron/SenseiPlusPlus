@@ -60,6 +60,19 @@ VITE_API_BASE_URL=https://api.example.test
 
 The default empty base URL is correct for the development proxy and for a same-origin deployment.
 
+### Development dependency pins
+
+The 4 November 2026 publication audit updates Vite to 8.3.5 and Vitest to 5.0.3.
+Overrides pin `source-map-js` 1.2.2 and Zod 4.6.7, plus Minimatch 11.0.1 specifically
+under `@typescript-eslint/typescript-estree`. That parser uses the public Minimatch function;
+the override retains the pinned TypeScript/ESLint stack while avoiding the affected 10.x line.
+Node 24 satisfies Minimatch's runtime requirement. Keep these pins until the parent packages
+request patched versions themselves; CI audits all installed dependencies without exclusions.
+See the [Minimatch advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249),
+[source-map-js advisory](https://github.com/advisories/GHSA-68fv-2mgg-jv7q),
+[Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5) and
+[Vitest advisory](https://github.com/advisories/GHSA-xp26-3454-mjgp).
+
 For local Google/GitHub sign-in, edit the root ignored `.env` and start each service from
 the repository root with `pwsh -File scripts/Start-Local.ps1 -Service Backend` and
 `pwsh -File scripts/Start-Local.ps1 -Service Client` in separate terminals. The launcher
