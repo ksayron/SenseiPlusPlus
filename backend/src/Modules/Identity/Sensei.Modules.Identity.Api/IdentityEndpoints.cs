@@ -19,7 +19,18 @@ public static class IdentityEndpoints
 
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/identity/users").WithTags("Identity");
+        var group = endpoints.MapGroup("/api/v1/identity/users").WithTags("Identity").RequireAuthorization();
+        group.AddEndpointFilter(async (invocation, next) =>
+        {
+            var context = invocation.HttpContext;
+            if (context.User.Identity?.AuthenticationType == "TestOwner") return await next(invocation);
+            if (context.Request.RouteValues.TryGetValue("id", out var raw) &&
+                (!Guid.TryParse(raw?.ToString(), out var id) || id != context.OwnerId())) return HttpContract.NotFound(context);
+            if (context.Request.Method == "POST") return HttpContract.NotFound(context);
+            if (context.Request.Method == "DELETE")
+                return HttpContract.Problem(context, "account_deletion_unavailable", 409, "Account deletion is not available yet", "Cross-module account deletion is delivered separately; archiving a record does not delete an account.");
+            return await next(invocation);
+        });
 
         group.MapPost("/", async (CreateUserRequest request, HttpContext context, IUserService service, CancellationToken cancellationToken) =>
         {
@@ -32,10 +43,11 @@ public static class IdentityEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status409Conflict);
 
-        group.MapGet("/", async (int? limit, string? cursor, IUserService service, CancellationToken cancellationToken) =>
+        group.MapGet("/", async (int? limit, string? cursor, HttpContext context, IUserService service, CancellationToken cancellationToken) =>
         {
-            var users = (await service.ListAsync(cancellationToken)).Select(Map).ToArray();
-            return Results.Ok(HttpContract.Page(users, limit, cursor, EndpointId,
+            var own = context.User.Identity?.AuthenticationType == "TestOwner" ? null : await service.GetAsync(context.OwnerId(), cancellationToken);
+            var users = context.User.Identity?.AuthenticationType == "TestOwner" ? (await service.ListAsync(cancellationToken)).Select(Map).ToArray() : own is null ? [] : new[] { Map(own) };
+            return Results.Ok(HttpContract.Page(users, limit, cursor, $"{EndpointId}:{context.OwnerId()}",
                 user => user.CreatedAt.ToString("O"), user => user.Id));
         })
         .WithName("ListUsers")

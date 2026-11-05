@@ -20,7 +20,7 @@ public static class LearningEndpoints
 
     public static IEndpointRouteBuilder MapLearningEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/v1/learning/concepts").WithTags("Learning");
+        var group = endpoints.MapGroup("/api/v1/learning/concepts").WithTags("Learning").RequireAuthorization();
 
         group.MapPost("/", async (CreateConceptRequest request, HttpContext context, IConceptService service, CancellationToken cancellationToken) =>
         {

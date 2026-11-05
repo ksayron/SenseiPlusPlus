@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${SENSEI_POSTGRES_USER:-sensei}
       POSTGRES_PASSWORD: ${SENSEI_POSTGRES_PASSWORD:-sensei_local_dev}
     ports:
-      - "${SENSEI_POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${SENSEI_POSTGRES_PORT:-5432}:5432"
     volumes:
       # PostgreSQL 18 stores clusters in major-version-specific subdirectories.
       - sensei-postgres-data:/var/lib/postgresql

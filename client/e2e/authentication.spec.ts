@@ -1,0 +1,41 @@
+import { test, expect } from '@playwright/test'
+
+const password = 'Browser-Test-Password1!'
+test('register, refresh, sign out and sign in preserve the account and appearance', async ({ page }, info) => {
+  const email = `ui-auth-${crypto.randomUUID()}@example.test`
+  await page.goto('/learn')
+  await expect(page.getByRole('heading', { name: 'Sign in to Sensei++' })).toBeVisible()
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await page.getByLabel('Display name', { exact: true }).fill('Browser learner')
+  await page.getByLabel('Email', { exact: true }).fill(email)
+  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByRole('button', { name: 'Night appearance' }).click()
+  expect(await page.getByLabel('Email', { exact: true }).inputValue()).toBe(email)
+  expect(await page.getByLabel('Password', { exact: true }).inputValue()).toBe(password)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: `test-results/auth-register-${info.project.name}.png`, fullPage: true })
+  await page.getByRole('button', { name: 'Create account', exact: true }).click()
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Signed in as Browser learner')).toHaveAttribute('title', email)
+  expect(await page.evaluate(() => localStorage.getItem('sensei.owner-id'))).toBeNull()
+  await page.getByRole('link', { name: 'Sign out', exact: true }).click()
+  await page.getByRole('button', { name: 'Confirm sign out' }).click()
+  await expect(page.getByRole('heading', { name: 'Sign in to Sensei++' })).toBeVisible()
+  await page.getByLabel('Email', { exact: true }).fill(email)
+  await page.getByLabel('Password', { exact: true }).fill('Wrong-Password1!')
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByRole('alert')).toContainText('Check your email and password')
+  await page.getByLabel('Password', { exact: true }).fill(password)
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByLabel('Signed in as Browser learner')).toHaveAttribute('title', email)
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'coastal-night')
+})
+
+test('localStorage owner tampering cannot choose an account', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('sensei.owner-id', '61c9ed1a-2333-46a2-9d48-3a840228e61b'))
+  await page.goto('/reflect')
+  await expect(page.getByRole('heading', { name: 'Sign in to Sensei++' })).toBeVisible()
+  const response = await page.request.get('/api/v1/work/episodes', { headers: { 'X-Owner-Id': '61c9ed1a-2333-46a2-9d48-3a840228e61b' } })
+  expect(response.status()).toBe(401)
+})

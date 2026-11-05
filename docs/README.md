@@ -29,6 +29,12 @@ The current repository has a modular backend, PostgreSQL persistence, concept/ev
 | [Learning delivery plan](11-learning-delivery-plan.md) | Ordered implementation increments, fixture requirements, acceptance matrices and verification evidence |
 | [Learning implementation record](13-learning-implementation.md) | Delivered Phase 1 behavior, setup, verification and remaining boundaries |
 | [Toolchain upgrade](15-toolchain-upgrade.md) | .NET 10 / Node 24 pins, compatibility work, branch protection and current validation |
+| [Local authentication](16-local-authentication.md) | Local registration/sign-in, cookie and antiforgery contract, owner isolation and existing-profile recovery |
+| [Free-only AI gateway](17-free-only-ai-gateway.md) | Provider-neutral adapters, fail-closed guards, offline pilot tooling and deferred live configuration/review |
+| [Durable optional assessment](19-durable-attempt-assessments.md) | Separate assessment of saved attempts, leased PostgreSQL jobs, fenced recovery, exploratory revisions and deferred provider activation |
+| [Local evidence agent](20-local-evidence-agent.md) | Opt-in Windows Git watcher, protected local inbox, source retention and reviewed sanitized draft export |
+| [Authenticated evidence import](21-authenticated-evidence-import.md) | Browser PKCE consent, scoped CLI credentials, encrypted manual delivery and immutable import receipts |
+| [Google/GitHub sign-in](22-external-authentication.md) | Optional provider authentication, explicit linking, connected profiles, HTTPS setup and passwordless confirmation |
 | [UI design documentation](ui/README.md) | Selected Coastal/cobalt SPA guidelines, visual identity, component handoff, and working demo reference |
 | [Original learning specification](inputs/learning-system-specification.md) | Unchanged user-supplied input; the discussion refinements are recorded in the learning system decision table |
 

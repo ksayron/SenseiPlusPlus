@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { api, setOwnerId } from './api'
+import { api, setAuthenticatedOwner, resetCsrf } from './api'
 
 const storage = new Map<string, string>()
 
@@ -16,6 +16,8 @@ Object.defineProperty(globalThis, 'localStorage', {
 describe('API transport', () => {
   beforeEach(() => {
     storage.clear()
+    setAuthenticatedOwner('')
+    resetCsrf()
     vi.restoreAllMocks()
   })
 
@@ -41,27 +43,30 @@ describe('API transport', () => {
     })
   })
 
-  it('adds the temporary owner header only to owner-scoped calls', async () => {
+  it('sends an account precondition with cookies without selecting an owner', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('[]', {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }))
     vi.stubGlobal('fetch', fetchMock)
-    setOwnerId('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
+    setAuthenticatedOwner('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
 
     await api.episodes.listPage()
 
     const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Headers
-    expect(headers.get('X-Owner-Id')).toBe('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
+    expect(headers.has('X-Owner-Id')).toBe(false)
+    expect(headers.get('X-Expected-Owner')).toBe('7fc2c0e0-f92f-4c36-8473-0380cd0e6910')
+    expect(fetchMock.mock.calls[0][1].credentials).toBe('include')
   })
 
   it('sends the opaque version token as a strong If-Match ETag', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    const fetchMock = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ token: 'csrf-token' }), { status: 200 })).mockResolvedValueOnce(new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetchMock)
 
     await api.concepts.deactivate({ id: 'concept-id', versionToken: 'opaque-token' } as never)
 
-    const headers = (fetchMock.mock.calls[0][1] as RequestInit).headers as Headers
+    const headers = (fetchMock.mock.calls[1][1] as RequestInit).headers as Headers
+    expect(headers.get('X-CSRF-Token')).toBe('csrf-token')
     expect(headers.get('If-Match')).toBe('"opaque-token"')
   })
 })

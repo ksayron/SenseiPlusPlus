@@ -15,6 +15,8 @@
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />
+    <ProjectReference Include="..\..\tools\Sensei.Ai.Pilot\Sensei.Ai.Pilot.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Sensei.BuildingBlocks.Ai\Sensei.BuildingBlocks.Ai.csproj" />
     <ProjectReference Include="..\..\src\BuildingBlocks\Sensei.BuildingBlocks.Api\Sensei.BuildingBlocks.Api.csproj" />
     <ProjectReference Include="..\..\src\Modules\Evidence\Sensei.Modules.Evidence.Domain\Sensei.Modules.Evidence.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Experience\Sensei.Modules.Experience.Domain\Sensei.Modules.Experience.Domain.csproj" />

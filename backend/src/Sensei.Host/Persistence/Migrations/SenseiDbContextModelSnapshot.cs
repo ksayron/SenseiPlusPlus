@@ -17,10 +17,408 @@ namespace Sensei.Host.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.20")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("login_claims", "identity");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId", "LoginProvider")
+                        .IsUnique();
+
+                    b.ToTable("login_providers", "identity");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LoginProvider")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("login_tokens", "identity");
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ClientId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ClientSecret")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClientType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("ConsentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayNames")
+                        .HasColumnType("text");
+
+                    b.Property<string>("JsonWebKeySet")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Permissions")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PostLogoutRedirectUris")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RedirectUris")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Requirements")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique();
+
+                    b.ToTable("OpenIddictApplications", (string)null);
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scopes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "Status", "Subject", "Type");
+
+                    b.ToTable("OpenIddictAuthorizations", (string)null);
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreScope", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Descriptions")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("DisplayNames")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Resources")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("OpenIddictScopes", (string)null);
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AuthorizationId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Payload")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Properties")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RedemptionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReferenceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorizationId");
+
+                    b.HasIndex("ReferenceId")
+                        .IsUnique();
+
+                    b.HasIndex("ApplicationId", "Status", "Subject", "Type");
+
+                    b.ToTable("OpenIddictTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Sensei.Host.Authentication.CliGrant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AuthorizationId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Revoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "Id")
+                        .IsUnique();
+
+                    b.ToTable("cli_grants", "identity");
+                });
+
+            modelBuilder.Entity("Sensei.Host.Authentication.ExternalAuthFlow", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("BindingHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset?>("ChallengedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ReturnPath")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("external_auth_flows", "identity");
+                });
+
+            modelBuilder.Entity("Sensei.Host.Integrations.ProfessionalImport", b =>
+                {
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PayloadDigest")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReceiptJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("OwnerId", "EventId");
+
+                    b.HasIndex("OwnerId", "EntryId")
+                        .IsUnique();
+
+                    b.ToTable("professional_imports", "experience");
+                });
 
             modelBuilder.Entity("Sensei.Modules.Evidence.Domain.EvidenceObservation", b =>
                 {
@@ -354,6 +752,11 @@ namespace Sensei.Host.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("approved_at");
 
+                    b.Property<string>("Assistance")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("assistance");
+
                     b.Property<string>("Context")
                         .IsRequired()
                         .HasColumnType("text")
@@ -390,6 +793,11 @@ namespace Sensei.Host.Persistence.Migrations
                         .HasMaxLength(240)
                         .HasColumnType("character varying(240)")
                         .HasColumnName("title");
+
+                    b.Property<string>("Uncertainty")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("uncertainty");
 
                     b.HasKey("EntryId", "Number")
                         .HasName("pk_entry_revisions");
@@ -492,6 +900,401 @@ namespace Sensei.Host.Persistence.Migrations
                             t.HasCheckConstraint("ck_users_id_not_empty", "id <> '00000000-0000-0000-0000-000000000000'::uuid");
 
                             t.HasCheckConstraint("ck_users_version_positive", "version >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Identity.Infrastructure.ConnectedProfile", b =>
+                {
+                    b.Property<string>("Provider")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ProviderKey")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProfileUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTimeOffset>("RefreshedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Provider", "ProviderKey");
+
+                    b.HasIndex("OwnerId", "Provider")
+                        .IsUnique();
+
+                    b.ToTable("connected_profiles", "identity");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Identity.Infrastructure.LoginAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique();
+
+                    b.ToTable("login_accounts", "identity");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentFeedbackRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("AuditJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("audit_json");
+
+                    b.Property<string>("ContractVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contract_version");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<string>("InputDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("input_digest");
+
+                    b.Property<Guid>("InvocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invocation_id");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<string>("OutputJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("output_json");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer")
+                        .HasColumnName("revision");
+
+                    b.Property<string>("RouteDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("route_digest");
+
+                    b.Property<string>("Scope")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("scope");
+
+                    b.Property<string>("TemplateVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("template_version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "AttemptId", "Revision")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "JobId", "InvocationId");
+
+                    b.HasIndex("OwnerId", "JobId", "AttemptId", "ExerciseVersionId");
+
+                    b.ToTable("assessment_feedback_revisions", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentInvocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AuditJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("audit_json");
+
+                    b.Property<string>("FailureCode")
+                        .HasColumnType("text")
+                        .HasColumnName("failure_code");
+
+                    b.Property<long>("Fence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fence");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finished_at");
+
+                    b.Property<int>("Generation")
+                        .HasColumnType("integer")
+                        .HasColumnName("generation");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_digest");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartedAt");
+
+                    b.HasIndex("JobId", "Number")
+                        .IsUnique();
+
+                    b.ToTable("assessment_invocations", "learning");
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("CommandDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("command_digest");
+
+                    b.Property<string>("ContractVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contract_version");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisclosureDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("disclosure_digest");
+
+                    b.Property<Guid>("ExerciseVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("exercise_version_id");
+
+                    b.Property<string>("FailureCode")
+                        .HasColumnType("text")
+                        .HasColumnName("failure_code");
+
+                    b.Property<long>("Fence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("fence");
+
+                    b.Property<int>("Generation")
+                        .HasColumnType("integer")
+                        .HasColumnName("generation");
+
+                    b.Property<string>("InputDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("input_digest");
+
+                    b.Property<string>("InputJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("input_json");
+
+                    b.Property<int>("InvocationCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("invocation_count");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lease_until");
+
+                    b.Property<DateTimeOffset>("NotBefore")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_before");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<int>("Repairs")
+                        .HasColumnType("integer")
+                        .HasColumnName("repairs");
+
+                    b.Property<string>("RequestDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("request_digest");
+
+                    b.Property<string>("RouteDigest")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("route_digest");
+
+                    b.Property<string>("RouteJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("route_json");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("state");
+
+                    b.Property<string>("TemplateVersion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("template_version");
+
+                    b.Property<int>("TransientRetries")
+                        .HasColumnType("integer")
+                        .HasColumnName("transient_retries");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId", "AttemptId")
+                        .IsUnique()
+                        .HasFilter("state IN ('Queued', 'Running', 'Retry')");
+
+                    b.HasIndex("OwnerId", "OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerId", "AttemptId", "ExerciseVersionId");
+
+                    b.HasIndex("State", "NotBefore", "CreatedAt");
+
+                    b.ToTable("assessment_jobs", "learning", t =>
+                        {
+                            t.HasCheckConstraint("ck_assessment_bounds", "invocation_count BETWEEN 0 AND 3 AND transient_retries BETWEEN 0 AND 1 AND repairs BETWEEN 0 AND 1 AND version >= 1 AND generation >= 0 AND fence >= 0");
+
+                            t.HasCheckConstraint("ck_assessment_origin", "origin IN ('Provider','Fixture')");
+
+                            t.HasCheckConstraint("ck_assessment_state", "state IN ('Queued','Running','Retry','Succeeded','Failed','Cancelled','Obsolete') AND ((state = 'Running') = (lease_until IS NOT NULL))");
                         });
                 });
 
@@ -1399,6 +2202,82 @@ namespace Sensei.Host.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Infrastructure.LoginAccount", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Infrastructure.LoginAccount", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Infrastructure.LoginAccount", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization", b =>
+                {
+                    b.HasOne("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", "Application")
+                        .WithMany("Authorizations")
+                        .HasForeignKey("ApplicationId");
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreToken", b =>
+                {
+                    b.HasOne("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", "Application")
+                        .WithMany("Tokens")
+                        .HasForeignKey("ApplicationId");
+
+                    b.HasOne("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization", "Authorization")
+                        .WithMany("Tokens")
+                        .HasForeignKey("AuthorizationId");
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Authorization");
+                });
+
+            modelBuilder.Entity("Sensei.Host.Authentication.CliGrant", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Infrastructure.LoginAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Host.Integrations.ProfessionalImport", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Experience.Domain.ExperienceEntry", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "EntryId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Sensei.Modules.Evidence.Domain.EvidenceObservation", b =>
                 {
                     b.HasOne("Sensei.Modules.Learning.Domain.Concept", null)
@@ -1524,6 +2403,67 @@ namespace Sensei.Host.Persistence.Migrations
                         .WithMany("Concepts")
                         .HasForeignKey("EntryId", "RevisionNumber")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Identity.Infrastructure.ConnectedProfile", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Infrastructure.LoginAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", null)
+                        .WithOne()
+                        .HasForeignKey("Sensei.Modules.Identity.Infrastructure.ConnectedProfile", "Provider", "ProviderKey")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Identity.Infrastructure.LoginAccount", b =>
+                {
+                    b.HasOne("Sensei.Modules.Identity.Domain.UserAccount", null)
+                        .WithOne()
+                        .HasForeignKey("Sensei.Modules.Identity.Infrastructure.LoginAccount", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentFeedbackRevision", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentInvocation", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId", "InvocationId")
+                        .HasPrincipalKey("OwnerId", "JobId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentJob", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId", "AttemptId", "ExerciseVersionId")
+                        .HasPrincipalKey("OwnerId", "Id", "AttemptId", "ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentInvocation", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.AssessmentJob", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "JobId")
+                        .HasPrincipalKey("OwnerId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Sensei.Modules.Learning.Domain.AssessmentJob", b =>
+                {
+                    b.HasOne("Sensei.Modules.Learning.Domain.LearningAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerId", "AttemptId", "ExerciseVersionId")
+                        .HasPrincipalKey("OwnerId", "Id", "ExerciseVersionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -1798,6 +2738,18 @@ namespace Sensei.Host.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_work_episodes_owner");
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication", b =>
+                {
+                    b.Navigation("Authorizations");
+
+                    b.Navigation("Tokens");
+                });
+
+            modelBuilder.Entity("OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreAuthorization", b =>
+                {
+                    b.Navigation("Tokens");
                 });
 
             modelBuilder.Entity("Sensei.Modules.Experience.Domain.ExperienceEntry", b =>

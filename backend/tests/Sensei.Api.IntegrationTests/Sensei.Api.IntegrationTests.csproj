@@ -4,9 +4,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- Keep native journey dependencies in the selected configuration across solution boundaries. -->
+    <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <!-- The test graph resolves OpenIddict's XML/PKCS packages outside the web shared framework. -->
+    <PackageReference Include="System.Security.Cryptography.Xml" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Testcontainers.PostgreSql" />
     <PackageReference Include="xunit" />
@@ -25,4 +29,5 @@
     <ProjectReference Include="..\..\src\Modules\WorkReflection\Sensei.Modules.WorkReflection.Domain\Sensei.Modules.WorkReflection.Domain.csproj" />
     <ProjectReference Include="..\..\src\Sensei.Host\Sensei.Host.csproj" />
   </ItemGroup>
+<ItemGroup><ProjectReference Include="../../../agent-spp/src/Sensei.LocalAgent.Cli/Sensei.LocalAgent.Cli.csproj" /></ItemGroup>
 </Project>

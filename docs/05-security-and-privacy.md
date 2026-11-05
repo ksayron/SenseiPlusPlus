@@ -2,6 +2,9 @@
 
 **Learning update, 24 September 2026:** [Phase 1 learning](09-learning-system.md) is local and AI-independent. Provider, offline and organization controls below apply when those later capabilities are enabled; they are not dependencies of deterministic practice. Full offline execution is Phase 4.
 
+**Authentication update, 3 October 2026:** local email/password accounts, cookies, antiforgery and authenticated owner context are implemented. See [the implementation and recovery guide](16-local-authentication.md); hosted recovery, account export/deletion and later-client policies below remain planned.
+**External sign-in update, 4 October 2026:** optional Google/GitHub authentication and explicitly linked profiles use the same owner boundary. See [setup and trust rules](22-external-authentication.md). GitHub linking does not establish authored-work evidence.
+
 ## Trust boundaries
 
 The application and PostgreSQL run locally. If optional AI is enabled later, its request content crosses two external boundaries: **OpenRouter and the selected model-serving provider**. Core learning sends no such requests. Account credentials, source context, answers and journal entries need different handling. A developer owning their learning history does not thereby gain permission to share employer intellectual property.

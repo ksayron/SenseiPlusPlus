@@ -10,19 +10,23 @@ import type {
 } from './types'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-const OWNER_KEY = 'sensei.owner-id'
-const DEFAULT_OWNER_ID = '61c9ed1a-2333-46a2-9d48-3a840228e61b'
-
-export const getOwnerId = () => {
-  const stored = localStorage.getItem(OWNER_KEY)
-  if (stored) return stored
-  localStorage.setItem(OWNER_KEY, DEFAULT_OWNER_ID)
-  return DEFAULT_OWNER_ID
-}
-
-export const setOwnerId = (id: string) => {
-  localStorage.setItem(OWNER_KEY, id)
+let accountId = ''
+let csrfToken: Promise<string> | null = null
+export const getOwnerId = () => accountId
+export const setAuthenticatedOwner = (id: string) => {
+  if (accountId === id) return
+  accountId = id
+  csrfToken = null
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('sensei-owner-change'))
+}
+export const resetCsrf = () => { csrfToken = null }
+export const securityToken = () => {
+  if (!csrfToken) csrfToken = fetch(`${API_BASE}/api/v1/auth/csrf`, { credentials: 'include' })
+    .then(async response => {
+      if (!response.ok) throw new Error('Could not load a security token. Retry connecting.')
+      return (await response.json() as { token: string }).token
+    }).catch(error => { csrfToken = null; throw error })
+  return csrfToken
 }
 
 export class ApiError extends Error {
@@ -43,9 +47,11 @@ export async function request<T>(path: string, init?: RequestInit, ownerScoped =
   const headers = new Headers(init?.headers)
   if (init?.body) headers.set('Content-Type', 'application/json')
   const requestOwner = ownerScoped ? getOwnerId() : null
-  if (requestOwner) headers.set('X-Owner-Id', requestOwner)
+  if (accountId && (ownerScoped || !path.startsWith('/api/v1/auth/') || path.endsWith('/logout'))) headers.set('X-Expected-Owner', accountId)
+  if (init?.method && !['GET', 'HEAD', 'OPTIONS'].includes(init.method.toUpperCase())) headers.set('X-CSRF-Token', await securityToken())
+  if (requestOwner && requestOwner !== getOwnerId()) throw new ApiError('Account changed. Reload this page.', 409)
 
-  const response = await fetch(`${API_BASE}${path}`, { ...init, headers })
+  const response = await fetch(`${API_BASE}${path}`, { ...init, headers, credentials: 'include' })
   if (requestOwner && requestOwner !== getOwnerId()) throw new ApiError('Owner changed. Reload this page.', 409)
   if (!response.ok) {
     let message = `Request failed (${response.status})`
@@ -56,6 +62,8 @@ export async function request<T>(path: string, init?: RequestInit, ownerScoped =
     } catch {
       // Keep the useful status fallback for empty responses.
     }
+    if (response.status === 401 && ownerScoped && typeof window !== 'undefined') window.dispatchEvent(new Event('sensei-session-expired'))
+    if (problem?.code === 'antiforgery_failed') resetCsrf()
     throw new ApiError(message, response.status, problem)
   }
   if (response.status === 204) return undefined as T
@@ -114,6 +122,7 @@ export const api = {
       request<void>(`/api/v1/evidence/observations/${item.id}`, versioned(item.versionToken, { method: 'DELETE' }), true),
   },
   experience: {
+    get: (id: string) => request<ExperienceEntry>(`/api/v1/experience/entries/${id}`, undefined, true),
     listPage: (cursor?: string) => request<PageEnvelope<ExperienceEntry>>(pagePath('/api/v1/experience/entries/', { includeArchived: 'true' }, cursor), undefined, true),
     create: (body: Record<string, unknown>) =>
       request<ExperienceEntry>('/api/v1/experience/entries/', { method: 'POST', ...json(body) }, true),

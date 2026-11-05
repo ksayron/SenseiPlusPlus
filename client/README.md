@@ -13,9 +13,10 @@ React + TypeScript learning workbench for the Sensei++ modular-monolith API.
 - Revisioned experience journal with exact-revision approval.
 - API health state, Problem Details messages, loading/empty states, and optimistic-concurrency versions.
 - Complete Phase 1 topic/practice/session/goal/coverage flows with all six exercise formats, durable commands, acknowledged drafts and evidence history; see the [implementation record](../docs/13-learning-implementation.md).
-- A development-only owner identity stored in `localStorage` and sent as `X-Owner-Id` to owner-scoped endpoints.
+- Local email/password registration and sign-in, an HttpOnly session cookie, antiforgery-protected mutations, and account-isolated workspace state.
+- Optional Google/GitHub sign-in, connected-profile management, and password/provider confirmation. See [provider setup](../docs/22-external-authentication.md); providers default to disabled.
 
-The owner header matches the current backend boundary; it is not authentication and must be replaced before non-local use.
+See [local authentication and recovery](../docs/16-local-authentication.md). Existing development profiles receive no default password; use the documented interactive recovery command to access their preserved data. Hosted sign-up and recovery policy remain separate work.
 
 ## Run locally
 
@@ -58,6 +59,27 @@ VITE_API_BASE_URL=https://api.example.test
 ```
 
 The default empty base URL is correct for the development proxy and for a same-origin deployment.
+
+### Development dependency pins
+
+The 4 November 2026 publication audit updates Vite to 8.3.5 and Vitest to 5.0.3.
+Overrides pin `source-map-js` 1.2.2 and Zod 4.6.7, plus Minimatch 11.0.1 specifically
+under `@typescript-eslint/typescript-estree`. That parser uses the public Minimatch function;
+the override retains the pinned TypeScript/ESLint stack while avoiding the affected 10.x line.
+Node 24 satisfies Minimatch's runtime requirement. Keep these pins until the parent packages
+request patched versions themselves; CI audits all installed dependencies without exclusions.
+See the [Minimatch advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249),
+[source-map-js advisory](https://github.com/advisories/GHSA-68fv-2mgg-jv7q),
+[Zod advisory](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5) and
+[Vitest advisory](https://github.com/advisories/GHSA-xp26-3454-mjgp).
+
+For local Google/GitHub sign-in, edit the root ignored `.env` and start each service from
+the repository root with `pwsh -File scripts/Start-Local.ps1 -Service Backend` and
+`pwsh -File scripts/Start-Local.ps1 -Service Client` in separate terminals. The launcher
+loads the file, uses HTTPS and proxies provider callbacks to the backend. Trust the development
+certificate once with `dotnet dev-certs https --trust`, then open `https://localhost:5173/`.
+See [provider setup](../docs/22-external-authentication.md). Credentials use server environment
+keys without the `VITE_` prefix, so Vite does not expose them to the browser bundle.
 
 ## Verify
 

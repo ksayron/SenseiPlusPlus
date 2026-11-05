@@ -108,3 +108,5 @@ Initial policy: one retry for transient provider failure with backoff; one bound
 If the worker crashes after inference but before commit, computation may repeat. This is at-least-once execution with idempotent domain effects, not exactly-once inference. Expired leases recover after restart. A lost lease cannot commit even if the old worker later returns. Delete/cancel invalidates queued and running work so removed text cannot reappear through delayed results.
 
 An internal jobs screen exposes state, timestamps and safe error categories for recovery; it need not reveal answers or full prompts. A scheduler replacement must preserve these domain invariants.
+
+The [current implementation record](19-durable-attempt-assessments.md) implements this boundary for a separate optional assessment requested after a saved learning attempt. It uses a leased PostgreSQL queue and versioned exploratory feedback; provider activation and reviewed-rubric knowledge contributions remain deferred. The original synchronous deterministic result is unchanged.

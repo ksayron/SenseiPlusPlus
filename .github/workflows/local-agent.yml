@@ -1,0 +1,61 @@
+name: Local evidence agent
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  local-agent-windows:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: agent-spp/global.json
+      - name: Restore locked dependencies
+        run: |
+          dotnet restore agent-spp/AgentSpp.sln --locked-mode
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet restore backend/Sensei.sln --locked-mode
+      - name: Build Release
+        run: |
+          dotnet build agent-spp/AgentSpp.sln -c Release --no-restore
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet build backend/Sensei.sln -c Release --no-restore
+      - name: Git capture, DPAPI, queue recovery and architecture
+        run: |
+          dotnet test agent-spp/tests/Sensei.LocalAgent.Tests/Sensei.LocalAgent.Tests.csproj -c Release --no-build --logger "trx;LogFileName=agent.trx" --results-directory .tmp/agent-windows-results
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet test backend/tests/Sensei.ArchitectureTests/Sensei.ArchitectureTests.csproj -c Release --no-build
+      - name: Start disposable native PostgreSQL
+        shell: pwsh
+        run: |
+          $pgBin = $env:PGBIN
+          if (!(Test-Path "$pgBin\initdb.exe")) { throw 'Runner PostgreSQL binaries unavailable' }
+          $pgData = Join-Path $env:RUNNER_TEMP 'sensei-agent-pg'
+          & "$pgBin\initdb.exe" -D $pgData -U sensei -A trust
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & "$pgBin\pg_ctl.exe" -D $pgData -l (Join-Path $env:RUNNER_TEMP 'sensei-agent-pg.log') -o '-h 127.0.0.1 -p 55432' -w start
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          & "$pgBin\createdb.exe" -h 127.0.0.1 -p 55432 -U sensei sensei_agent_tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          'SENSEI_TEST_POSTGRES=Host=127.0.0.1;Port=55432;Username=sensei;Database=sensei_agent_tests' >> $env:GITHUB_ENV
+      - name: Authenticated import and native callback journey
+        run: dotnet test backend/tests/Sensei.Api.IntegrationTests/Sensei.Api.IntegrationTests.csproj -c Release --no-build --filter "FullyQualifiedName~AgentImportIntegrationTests|FullyQualifiedName~NativeAgentJourneyTests" --logger "trx;LogFileName=import.trx" --results-directory .tmp/agent-windows-results
+      - name: Stop disposable PostgreSQL
+        if: always()
+        shell: pwsh
+        run: |
+          $pgData = Join-Path $env:RUNNER_TEMP 'sensei-agent-pg'
+          if (Test-Path "$pgData\postmaster.pid") { & "$env:PGBIN\pg_ctl.exe" -D $pgData -m fast -w stop }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-agent-windows-results
+          path: .tmp/agent-windows-results

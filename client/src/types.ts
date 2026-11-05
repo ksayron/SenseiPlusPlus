@@ -2,7 +2,7 @@ export type Difficulty = 'Beginner' | 'Intermediate' | 'Advanced'
 export type Setting = 'Employment' | 'Coursework' | 'PersonalProject' | 'Other'
 export type EvidenceSignal = 'SelfDeclaration' | 'ProfessionalExposure' | 'Explanation' | 'Scenario' | 'Recall' | 'ClientReportedAssessment'
 export type EvidenceSource = 'Declaration' | 'Attempt' | 'FeedbackRevision' | 'ApprovedExperienceRevision'
-export type Assistance = 'None' | 'HintUsed' | 'ReferenceReviewed' | 'SelfReviewed'
+export type Assistance = 'None' | 'HintUsed' | 'ReferenceReviewed' | 'SelfReviewed' | 'Unspecified'
 export type EvidenceStatus = 'Active' | 'Disputed' | 'Superseded' | 'Withdrawn'
 export type ImpactState = 'Unknown' | 'Qualitative' | 'Measured'
 export type ApprovalState = 'Draft' | 'Approved' | 'Retracted'
@@ -61,6 +61,8 @@ export interface ExperienceRevision {
   conceptIds: string[]
   approvalState: ApprovalState
   createdAt: string
+  uncertainty: string
+  assistance: string
   approvedAt: string | null
 }
 

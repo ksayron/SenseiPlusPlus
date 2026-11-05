@@ -16,6 +16,7 @@ public sealed class SenseiDbContextFactory : IDesignTimeDbContextFactory<SenseiD
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__Sensei")
             ?? "Host=localhost;Port=5432;Database=sensei;Username=sensei;Password=sensei_local_dev";
         var options = new DbContextOptionsBuilder<SenseiDbContext>()
+            .UseOpenIddict()
             .UseNpgsql(connectionString, npgsql => npgsql.MigrationsAssembly("Sensei.Host"))
             .Options;
         var assemblies = new SenseiModelAssemblies([

@@ -2,13 +2,7 @@ import { Button } from "../components/ui/button";
 import { ui } from "./uiMessages";
 import { useState } from "react";
 import type { Block, Item, Answer } from "./contracts";
-const safeUrl = (url?: string) => {
-  try {
-    return url && new URL(url).protocol === "https:" ? url : undefined;
-  } catch {
-    return undefined;
-  }
-};
+import { safeExternalUrl as safeUrl } from "../lib/safeExternalUrl";
 function ImageBlock({ block }: { block: Block }) {
   const [failed, setFailed] = useState(false);
   return failed || !safeUrl(block.url) ? (
@@ -20,6 +14,7 @@ function ImageBlock({ block }: { block: Block }) {
     <img
       src={block.url}
       alt={block.alt ?? ui.materialIllustration}
+      referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
     />
   );

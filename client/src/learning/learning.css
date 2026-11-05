@@ -36,6 +36,13 @@
 .ordering-list li span { display: inline-block; width: calc(100% - 112px); vertical-align: middle; }
 .ordering-list button { min-width: 44px; margin-left: 4px; }
 .learning pre { max-width: 100%; overflow-x: auto; border-radius: var(--radius-control); background: var(--code-surface); color: var(--code-foreground); padding: 20px; font: .8125rem/1.7 var(--font-code); white-space: pre; }
+.optional-assessment { min-width: 0; margin-top: 12px; }
+.optional-assessment .learning-card { background: var(--card); }
+.optional-assessment .learning-card:hover { background: var(--card); border-color: var(--border); }
+.optional-assessment pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.optional-assessment button { min-height: 44px; }
+.optional-assessment .learning-check { display: flex; align-items: flex-start; gap: 10px; }
+.optional-assessment .learning-check input { margin-top: 4px; flex-shrink: 0; }
 .material-blocks { min-width: 0; }
 .material-blocks img { max-width: 100%; height: auto; }
 .material-blocks p { white-space: pre-wrap; max-width: 75ch; }

@@ -5,7 +5,33 @@ import {
   type APIRequestContext,
 } from "@playwright/test";
 import type { Mutation, Session, Topic } from "../src/learning/contracts";
-const backend = "http://localhost:5062/api/v1";
+const backend = "http://127.0.0.1:5173/api/v1";
+test("optional AI feedback remains separate from a durable saved attempt when configuration is deferred", async ({ page, request }, info) => {
+  const { session } = await prepare(page, request, "MultipleChoice");
+  await expect(page.getByRole("button", { name: "Optional AI feedback", exact: true })).toHaveCount(0);
+  await page.locator("fieldset input").first().check();
+  await page.getByRole("button", { name: "Submit answer", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Saved feedback" })).toBeVisible();
+  const before = await (await request.get(`${backend}/learning/sessions/${session.id}`)).json() as Session;
+  const attempt = before.items[0].feedback[0];
+  await page.getByRole("button", { name: "Optional AI feedback", exact: true }).click();
+  const panel = page.getByRole("region", { name: "Optional assessment" });
+  await expect(panel).toContainText("provider configuration and qualification are deferred");
+  await expect(panel).toContainText("does not change your knowledge scores");
+  await expect(panel.getByRole("button", { name: "Request optional feedback", exact: true })).toHaveCount(0);
+  const jobs = await (await request.get(`${backend}/learning/attempts/${attempt.attemptId}/assessments`)).json();
+  expect(jobs.items).toEqual([]);
+  const saved = await (await request.get(`${backend}/learning/attempts/${attempt.attemptId}`)).json();
+  expect(saved.score).toBe(attempt.score); expect(saved.note).toBe(attempt.note);
+  await page.screenshot({ path: `${process.env.SPA_SCREENSHOT_DIR ?? "../.tmp/assessment-browser"}/assessment-${info.project.name}.png`, fullPage: true });
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Optional AI feedback", exact: true })).toBeVisible();
+  expect((await (await request.get(`${backend}/learning/sessions/${session.id}`)).json() as Session).items[0].feedback[0].attemptId).toBe(attempt.attemptId);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.locator(".summary-item summary").first().click();
+  await page.getByRole("button", { name: "Optional AI feedback", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Optional assessment" })).toContainText("provider configuration and qualification are deferred");
+});
 test("unrelated subject accepts an authored alternative through the same player", async ({ page, request }) => {
   await prepare(page, request, "Matching", "orbital-signals-fixture");
   const selects = page.locator(".matching-row select");
@@ -30,25 +56,25 @@ test.afterEach(async ({ page }, info) => {
     contentType: "application/json",
   });
 });
-async function owner(request: APIRequestContext) {
-  const response = await request.post(`${backend}/identity/users`, {
+const csrfTokens = new WeakMap<APIRequestContext, string>();
+async function owner(request: APIRequestContext, page: Page) {
+  const csrf = await (await request.get(`${backend}/auth/csrf`)).json();
+  const response = await request.post(`${backend}/auth/register`, {
+    headers: { 'X-CSRF-Token': csrf.token },
     data: {
-      email: `browser-${crypto.randomUUID()}@example.test`,
-      displayName: "Browser test",
-      uiLocale: "en",
-      answerLanguage: "en",
-      timeZone: "UTC",
+      email: `browser-${crypto.randomUUID()}@example.test`, password: 'Browser-Test-Password1!',
+      displayName: 'Browser test', uiLocale: 'en', answerLanguage: 'en', timeZone: 'UTC',
     },
   });
   expect(response.ok()).toBeTruthy();
-  return (await response.json()).id as string;
+  const account = await response.json();
+  const token = (await (await request.get(`${backend}/auth/csrf`)).json()).token;
+  csrfTokens.set(request, token);
+  await page.context().addCookies((await request.storageState()).cookies);
+  return account.id as string;
 }
 async function prepare(page: Page, request: APIRequestContext, type: string, topicKey = "value-reference-fixture") {
-  const id = await owner(request);
-  await page.addInitScript(
-    (value) => localStorage.setItem("sensei.owner-id", value),
-    id,
-  );
+  const id = await owner(request, page);
   const topics = (
     await (await request.get(`${backend}/learning/topics?limit=100`)).json()
   ).items as Topic[];
@@ -56,7 +82,7 @@ async function prepare(page: Page, request: APIRequestContext, type: string, top
     (t) => t.concept.key === topicKey,
   )!;
   const response = await request.post(`${backend}/learning/sessions`, {
-    headers: { "X-Owner-Id": id },
+    headers: { "X-CSRF-Token": csrfTokens.get(request)!, "X-Expected-Owner": id },
     data: {
       operationId: crypto.randomUUID(),
       setup: {
@@ -78,11 +104,7 @@ test("topic sections retain URLs and the narrow layout does not overflow", async
   page,
   request,
 }) => {
-  const id = await owner(request);
-  await page.addInitScript(
-    (value) => localStorage.setItem("sensei.owner-id", value),
-    id,
-  );
+  await owner(request, page);
   await page.goto("/learn/topics?search=Value");
   await page
     .getByRole("link", { name: /Value and reference semantics/ })
@@ -118,7 +140,7 @@ test("draft autosave, pause, refresh and resume preserve acknowledged notes", as
     await expect(page.locator("html")).toHaveAttribute("data-theme", appearance);
     await expect(page.getByLabel("Your reasoning — saved, not automatically assessed")).toHaveValue("A reference is copied, not the object.");
     await expect(page.locator(".save-status")).toHaveText("Saved");
-    await page.screenshot({ path: `../docs/ui/spa-screenshots/session-${test.info().project.name}-${appearance}.png`, fullPage: true });
+    await page.screenshot({ path: `${process.env.SPA_SCREENSHOT_DIR ?? '../docs/ui/spa-screenshots'}/session-${test.info().project.name}-${appearance}.png`, fullPage: true });
   }
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(page.getByText("Paused, with your work saved")).toBeVisible();
@@ -213,7 +235,7 @@ test("a committed submission with a lost response replays one result", async ({
   ).toBeVisible();
   const saved = (await (
     await request.get(`${backend}/learning/sessions/${session.id}`, {
-      headers: { "X-Owner-Id": id },
+      headers: { "X-CSRF-Token": csrfTokens.get(request)!, "X-Expected-Owner": id },
     })
   ).json()) as Session;
   expect(saved.items[0].feedback).toHaveLength(1);
@@ -314,20 +336,17 @@ test("owner switching removes the previous owner session and ignores pending res
   page,
   request,
 }) => {
-  await prepare(page, request, "Prediction");
-  const nextOwner = await owner(request);
+  const { session } = await prepare(page, request, "Prediction");
   await page
     .getByRole("textbox", {
       name: "Your reasoning — saved, not automatically assessed",
     })
     .fill("Private prior-owner note");
-  await page.evaluate((id) => {
-    localStorage.setItem("sensei.owner-id", id);
-    window.dispatchEvent(new Event("sensei-owner-change"));
-  }, nextOwner);
-  await expect(
-    page.getByText("Resource not found", { exact: false }),
-  ).toBeVisible();
+  await owner(request, page);
+  const denied = page.waitForResponse(response => response.url().endsWith(`/api/v1/learning/sessions/${session.id}`) && response.status() === 404);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  expect((await (await denied).json()).code).toBe('resource_not_found');
+  await expect(page.getByRole('alert')).toBeVisible();
   await expect(
     page.getByRole("textbox", {
       name: "Your reasoning — saved, not automatically assessed",
@@ -360,6 +379,20 @@ test("failed navigation save keeps input and lets the learner stay", async ({
   await expect(page.locator(".save-status")).toHaveText("Saved");
   await page.reload();
   await expect(note).toHaveValue("Keep this unsaved explanation");
+});
+
+test("a failed session verification keeps the current account editor input", async ({ page, request }) => {
+  await prepare(page, request, "Prediction");
+  const note = page.getByRole("textbox", { name: "Your reasoning — saved, not automatically assessed" });
+  await note.fill("Keep this text while reconnecting");
+  await page.route("**/api/v1/auth/me", route => route.fulfill({ status: 503, json: { title: "Unavailable" } }));
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByRole("alert").filter({ hasText: "Could not verify your session" })).toBeVisible();
+  await expect(note).toHaveValue("Keep this text while reconnecting");
+  await page.unroute("**/api/v1/auth/me");
+  await page.getByRole("button", { name: "Retry connection", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Could not verify your session" })).toHaveCount(0);
+  await expect(note).toHaveValue("Keep this text while reconnecting");
 });
 
 test("answer-aware retry preserves the original feedback and finishes explicitly", async ({
@@ -398,11 +431,7 @@ test("cold start supports creating and editing goals and records material readin
   page,
   request,
 }) => {
-  const id = await owner(request);
-  await page.addInitScript(
-    (value) => localStorage.setItem("sensei.owner-id", value),
-    id,
-  );
+  const id = await owner(request, page);
   await page.goto("/learn");
   await expect(
     page.getByText("No learning activity yet.", { exact: false }),
@@ -434,7 +463,7 @@ test("cold start supports creating and editing goals and records material readin
     .poll(async () => {
       const activity = await (
         await request.get(`${backend}/learning/activity`, {
-          headers: { "X-Owner-Id": id },
+          headers: { "X-CSRF-Token": csrfTokens.get(request)!, "X-Expected-Owner": id },
         })
       ).json();
       return activity.items.some(
@@ -450,12 +479,8 @@ test("ten-item shortage is explicit and free practice coverage is shared by road
   page,
   request,
 }) => {
-  const id = await owner(request);
-  const headers = { "X-Owner-Id": id };
-  await page.addInitScript(
-    (value) => localStorage.setItem("sensei.owner-id", value),
-    id,
-  );
+  const id = await owner(request, page);
+  const headers = { "X-CSRF-Token": csrfTokens.get(request)!, "X-Expected-Owner": id };
   const topics = (
     await (await request.get(`${backend}/learning/topics?limit=100`)).json()
   ).items as Topic[];

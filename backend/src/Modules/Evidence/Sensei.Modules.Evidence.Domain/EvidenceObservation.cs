@@ -15,7 +15,8 @@ public enum EvidenceSourceKind
     Declaration,
     Attempt,
     FeedbackRevision,
-    ApprovedExperienceRevision
+    ApprovedExperienceRevision,
+    ProfessionalEventImport
 }
 
 public enum AssistanceLevel
@@ -23,7 +24,8 @@ public enum AssistanceLevel
     None,
     HintUsed,
     ReferenceReviewed,
-    SelfReviewed
+    SelfReviewed,
+    Unspecified
 }
 
 public enum EvidenceStatus
